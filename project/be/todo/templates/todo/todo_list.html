@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}All Tasks{% endblock %}
+
+{% block content %}
+<h1>All Tasks</h1>
+
+{% for todo in todos %}
+<ul>
+    <li>Title: {{ todo.task }}</li>
+    <li>Goal Set On: {{ todo.goal_set_date|date:"M. j, Y" }}</li>
+    <li>Set To Complete: {{ todo.set_to_complete|date:"M. j, Y" }}</li>
+    <li>Completed Status: {{ todo.is_completed }}</li>
+</ul>
+{% endfor %}
+{% endblock %}
