@@ -8,4 +8,4 @@ class Todo(models.Model):
     description = models.TextField(max_length=1024)
     goal_set_date = models.DateField()
     set_to_complete = models.DateField()
-    is_complete = models.BooleanField(default=False)
+    is_completed = models.BooleanField(default=False)
