@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Thanks for your order!{% endblock %}
+
+{% block content %}
+<a href="{% url 'todo-list' %}">← All tasks</a>
+
+<h1>{{ object.task }}</h1>
+<p>{{ object.description }}</p>
+
+<ul>
+    <li>Goal Set On: {{ object.goal_set_date|date:"M. j, Y" }}</li>
+    <li>Set To Complete: {{ object.set_to_complete|date:"M. j, Y" }}</li>
+    <li>Completed Status: {{ object.is_completed }}</li>
+</ul>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block title %}Thanks for your order!{% endblock %}
+
+{% block content %}
+{% for todo in todos %}
+<p>{{ todo.task }}</p>
+{% endfor %}
+{% endblock %}
