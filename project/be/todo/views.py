@@ -1,9 +1,9 @@
 from django.db.models import QuerySet
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from ..models import Todo
-from ..serializers import TodoSerializer
-from ..permissions import IsAuthorOrReadOnly
+from .models import Todo
+from .serializers import TodoSerializer
+from .permissions import IsAuthorOrReadOnly
 
 __all__ = ['TodoDetailView', 'TodoListView']
 
