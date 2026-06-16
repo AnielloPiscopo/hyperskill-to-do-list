@@ -2,9 +2,9 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from .models import Todo
-from .serializers import TodoSerializer
-from .permissions import IsAuthorOrReadOnly
+from todo.models import Todo
+from todo.serializers import TodoSerializer
+from todo.permissions import IsAuthorOrReadOnly
 
 __all__ = ['TodoDetailView', 'TodoListView']
 
