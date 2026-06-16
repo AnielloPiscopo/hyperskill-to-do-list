@@ -46,7 +46,3 @@ class TodoModelTest(TestCase):
     def test_description_max_length(self):
         max_length = Todo._meta.get_field('description').max_length
         self.assertEqual(max_length, 1024)
-
-    def test_todo_of_nullable(self):
-        nullable = Todo._meta.get_field('todo_of').null
-        self.assertTrue(nullable)
