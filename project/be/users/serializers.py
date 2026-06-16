@@ -6,11 +6,13 @@ __all__ = ['RegisterSerializer']
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
-        style={'input_type': 'password'}
+        style={'input_type': 'password'},
+        help_text='Password for the new account'
     )
     confirm_password = serializers.CharField(
         write_only=True,
-        style={'input_type': 'password'}
+        style={'input_type': 'password'},
+        help_text='Repeat the password to confirm'
     )
 
     class Meta:
