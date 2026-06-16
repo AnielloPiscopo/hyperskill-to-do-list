@@ -23,6 +23,8 @@ class TodoListViewTest(APITestCase):
             'description': 'Test description',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
+            'is_completed': False,
+            'todo_of': self.user.pk,
         }
 
     def test_list_authenticated(self):
