@@ -16,7 +16,7 @@ class TodoSerializer(serializers.ModelSerializer):
     goal_set_date = serializers.DateField(
         help_text='Date when the task was created (YYYY-MM-DD)'
     )
-    set_to_complete = serializers.BooleanField(
+    set_to_complete = serializers.DateField(
         help_text='Whether the task was completed (True or False)'
     )
 
