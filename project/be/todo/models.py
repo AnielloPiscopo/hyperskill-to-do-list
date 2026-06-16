@@ -10,7 +10,7 @@ class Todo(models.Model):
     goal_set_date = models.DateField()
     set_to_complete = models.DateField()
     is_completed = models.BooleanField(default=False)
-    todo_of = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+    todo_of = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self) -> str:
         return self.task
