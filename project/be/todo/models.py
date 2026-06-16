@@ -11,3 +11,11 @@ class Todo(models.Model):
     set_to_complete = models.DateField()
     is_completed = models.BooleanField(default=False)
     todo_of = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
+
+    def __str__(self) -> str:
+        return self.task
+
+    def __repr__(self) -> str:
+        return f'Todo(id={self.id!r}, task={self.task!r}, is_completed={self.is_completed!r})'
+
+
