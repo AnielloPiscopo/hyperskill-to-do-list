@@ -33,8 +33,9 @@ class IsAuthorOrReadOnlyTest(TestCase):
 
     def _make_request(self, method: str, user: User) -> Request:
         raw = getattr(self.factory, method)('/')
-        raw.user = user
-        return Request(raw)
+        request = Request(raw)
+        request._user = user
+        return request
 
     def test_get_allowed_for_non_author(self):
         request = self._make_request('get', self.other_user)

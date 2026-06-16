@@ -31,6 +31,7 @@ class TodoListViewTest(APITestCase):
 
     def test_list_unauthenticated_returns_401(self):
         self.client.force_authenticate(user=None)
+        self.client.logout()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -45,6 +46,7 @@ class TodoListViewTest(APITestCase):
 
     def test_create_unauthenticated_returns_401(self):
         self.client.force_authenticate(user=None)
+        self.client.logout()
         response = self.client.post(self.url, self.todo_data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -145,5 +147,6 @@ class TodoDetailViewTest(APITestCase):
 
     def test_retrieve_unauthenticated_returns_401(self):
         self.client.force_authenticate(user=None)
+        self.client.logout()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
