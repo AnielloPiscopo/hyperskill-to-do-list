@@ -4,7 +4,8 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from todo.models import Todo
+from task.enums import TaskStatus
+from task.models import Task
 
 
 class TodoListViewTest(APITestCase):
@@ -19,12 +20,12 @@ class TodoListViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         self.url = '/tasks/'
         self.todo_data = {
-            'task': 'Test task',
+            'title': 'Test task',
             'description': 'Test description',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
-            'is_completed': False,
-            'todo_of': self.user.pk,
+            'status': TaskStatus.TODO,
+            'user': self.user.pk,
         }
 
     def test_list_authenticated(self):
@@ -40,11 +41,11 @@ class TodoListViewTest(APITestCase):
     def test_create_todo(self):
         response = self.client.post(self.url, self.todo_data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Todo.objects.count(), 1)
+        self.assertEqual(Task.objects.count(), 1)
 
     def test_create_sets_todo_of_to_request_user(self):
         self.client.post(self.url, self.todo_data)
-        self.assertEqual(Todo.objects.first().todo_of, self.user)
+        self.assertEqual(Task.objects.first().user, self.user)
 
     def test_create_unauthenticated_returns_401(self):
         self.client.force_authenticate(user=None)
@@ -52,28 +53,28 @@ class TodoListViewTest(APITestCase):
         response = self.client.post(self.url, self.todo_data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_ordering_incomplete_before_completed(self):
-        Todo.objects.create(
-            task='Completed task',
-            description='Desc',
-            goal_set_date=datetime.date(2024, 1, 1),
-            set_to_complete=datetime.date(2024, 1, 10),
-            is_completed=True,
-            todo_of=self.user
-        )
-        Todo.objects.create(
-            task='Pending task',
+    def test_ordering_todo_before_done(self):
+        Task.objects.create(
+            title='Done task',
             description='Desc',
             goal_set_date=datetime.date(2024, 1, 1),
             set_to_complete=datetime.date(2024, 1, 31),
-            is_completed=False,
-            todo_of=self.user
+            status=TaskStatus.DONE,
+            user=self.user
+        )
+        Task.objects.create(
+            title='Todo task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            status=TaskStatus.TODO,
+            user=self.user
         )
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data
-        self.assertFalse(results[0]['is_completed'])
-        self.assertTrue(results[1]['is_completed'])
+        self.assertEqual(results[0]['title'], 'Todo task')
+        self.assertEqual(results[1]['title'], 'Done task')
 
 
 class TodoDetailViewTest(APITestCase):
@@ -90,48 +91,48 @@ class TodoDetailViewTest(APITestCase):
         )
         self.client = APIClient()
         self.client.force_authenticate(user=self.user)
-        self.todo = Todo.objects.create(
-            task='Test task',
+        self.todo = Task.objects.create(
+            title='Test task',
             description='Test description',
             goal_set_date=datetime.date(2024, 1, 1),
             set_to_complete=datetime.date(2024, 1, 31),
-            todo_of=self.user
+            user=self.user
         )
         self.url = f'/tasks/{self.todo.pk}/'
 
     def test_retrieve_todo(self):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['task'], 'Test task')
+        self.assertEqual(response.data['title'], 'Test task')
 
     def test_update_todo_as_author(self):
         response = self.client.put(self.url, {
-            'task': 'Updated task',
+            'title': 'Updated task',
             'description': 'Updated description',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
-            'is_completed': False,
-            'todo_of': self.user.pk,
+            'status': TaskStatus.TODO,
+            'user': self.user.pk,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.todo.refresh_from_db()
-        self.assertEqual(self.todo.task, 'Updated task')
+        self.assertEqual(self.todo.title, 'Updated task')
 
     def test_partial_update_todo_as_author(self):
-        response = self.client.patch(self.url, {'is_completed': True})
+        response = self.client.patch(self.url, {'status': TaskStatus.DONE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.todo.refresh_from_db()
-        self.assertTrue(self.todo.is_completed)
+        self.assertEqual(self.todo.status, str(TaskStatus.DONE))
 
     def test_delete_todo_as_author(self):
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(Todo.objects.count(), 0)
+        self.assertEqual(Task.objects.count(), 0)
 
     def test_update_todo_as_non_author_returns_403(self):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.put(self.url, {
-            'task': 'Hacked task',
+            'title': 'Hacked task',
             'description': 'Hacked',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
