@@ -2,14 +2,14 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
-from todo.models import Todo
-from todo.serializers import TodoSerializer
-from todo.permissions import IsAuthorOrReadOnly
+from task.models import Task
+from task.serializers import TaskSerializer
+from task.permissions import IsAuthorOrReadOnly
 
-__all__ = ['TodoDetailView', 'TodoListView']
+__all__ = ['TaskDetailView', 'TaskListView']
 
-class TodoListView(generics.ListCreateAPIView):
-    serializer_class = TodoSerializer
+class TaskListView(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
@@ -17,7 +17,7 @@ class TodoListView(generics.ListCreateAPIView):
         operation_description='Returns all tasks ordered by completion status, deadline and creation date.',
         tags=['tasks'],
         responses={
-            200: TodoSerializer(many=True),
+            200: TaskSerializer(many=True),
             403: 'Authentication credentials were not provided.'
         }
     )
@@ -29,7 +29,7 @@ class TodoListView(generics.ListCreateAPIView):
         operation_description='Creates a new task. The author is automatically set to the logged in user.',
         tags=['tasks'],
         responses={
-            201: TodoSerializer,
+            201: TaskSerializer,
             400: 'Bad request — invalid data.',
             403: 'Authentication credentials were not provided.'
         }
@@ -38,14 +38,14 @@ class TodoListView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet:
-        return Todo.objects.all().order_by('set_to_complete', 'status')
+        return Task.objects.all().order_by('set_to_complete', 'status')
 
     def perform_create(self, serializer) -> None:
-        serializer.save(todo_of=self.request.user)
+        serializer.save(user=self.request.user)
 
-class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = TodoSerializer
-    queryset = Todo.objects.all()
+class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = TaskSerializer
+    queryset = Task.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     @swagger_auto_schema(
@@ -53,7 +53,7 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description='Returns the details of a specific task by its ID.',
         tags=['tasks'],
         responses={
-            200: TodoSerializer,
+            200: TaskSerializer,
             403: 'Authentication credentials were not provided.',
             404: 'Task not found.'
         }
@@ -66,7 +66,7 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description='Fully updates a task. Only the author can update it.',
         tags=['tasks'],
         responses={
-            200: TodoSerializer,
+            200: TaskSerializer,
             400: 'Bad request — invalid data.',
             403: 'Not authorized or not authenticated.',
             404: 'Task not found.'
@@ -80,7 +80,7 @@ class TodoDetailView(generics.RetrieveUpdateDestroyAPIView):
         operation_description='Partially updates a task. Only the author can update it.',
         tags=['tasks'],
         responses={
-            200: TodoSerializer,
+            200: TaskSerializer,
             400: 'Bad request — invalid data.',
             403: 'Not authorized or not authenticated.',
             404: 'Task not found.'
