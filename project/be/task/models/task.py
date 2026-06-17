@@ -33,6 +33,13 @@ class Task(BaseModel):
         on_delete=models.CASCADE,
         help_text='User who created the task'
     )
+    board = models.ForeignKey(
+        "board.Board",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="tasks"
+    )
 
     def __str__(self) -> str:
         return self.title
