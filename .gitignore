@@ -15,7 +15,6 @@ dist/
 
 # dotenv environment variable files
 .env
-.env.docker
 
 # Virtual environments
 .venv
