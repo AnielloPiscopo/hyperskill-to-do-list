@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
+from core.models import BaseModel
 from task.enums import TaskStatus
 
 __all__ = ['Task']
 
 
-class Task(models.Model):
+class Task(BaseModel):
     id = models.AutoField(primary_key=True)
     title = models.CharField(
         max_length=50,

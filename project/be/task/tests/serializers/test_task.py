@@ -34,7 +34,8 @@ class TaskSerializerTest(TestCase):
         serializer = TaskSerializer(self.task)
         self.assertSetEqual(
             set(serializer.data.keys()),
-            {'id', 'title', 'description', 'goal_set_date', 'set_to_complete', 'status', 'user'}
+            {'id', 'title', 'description', 'goal_set_date', 'set_to_complete', 'status', 'user',
+             'updated_at', 'created_at', 'is_archived'}
         )
 
     def test_serializes_task_fields_correctly(self):
