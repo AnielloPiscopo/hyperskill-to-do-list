@@ -38,7 +38,7 @@ class TodoListView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet:
-        return Todo.objects.all().order_by('is_completed', 'set_to_complete', 'goal_set_date')
+        return Todo.objects.all().order_by('set_to_complete', 'status')
 
     def perform_create(self, serializer) -> None:
         serializer.save(todo_of=self.request.user)

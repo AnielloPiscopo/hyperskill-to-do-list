@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
+from todo.enums import TaskStatus
 from todo.models import Todo
 
 
@@ -23,7 +24,7 @@ class TodoListViewTest(APITestCase):
             'description': 'Test description',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
-            'is_completed': False,
+            'status': TaskStatus.TODO,
             'todo_of': self.user.pk,
         }
 
@@ -52,28 +53,28 @@ class TodoListViewTest(APITestCase):
         response = self.client.post(self.url, self.todo_data)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    def test_ordering_incomplete_before_completed(self):
+    def test_ordering_todo_before_done(self):
         Todo.objects.create(
-            task='Completed task',
-            description='Desc',
-            goal_set_date=datetime.date(2024, 1, 1),
-            set_to_complete=datetime.date(2024, 1, 10),
-            is_completed=True,
-            todo_of=self.user
-        )
-        Todo.objects.create(
-            task='Pending task',
+            task='Done task',
             description='Desc',
             goal_set_date=datetime.date(2024, 1, 1),
             set_to_complete=datetime.date(2024, 1, 31),
-            is_completed=False,
+            status=TaskStatus.DONE,
+            todo_of=self.user
+        )
+        Todo.objects.create(
+            task='Todo task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            status=TaskStatus.TODO,
             todo_of=self.user
         )
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         results = response.data
-        self.assertFalse(results[0]['is_completed'])
-        self.assertTrue(results[1]['is_completed'])
+        self.assertEqual(results[0]['task'], 'Todo task')
+        self.assertEqual(results[1]['task'], 'Done task')
 
 
 class TodoDetailViewTest(APITestCase):
@@ -110,7 +111,7 @@ class TodoDetailViewTest(APITestCase):
             'description': 'Updated description',
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
-            'is_completed': False,
+            'status': TaskStatus.TODO,
             'todo_of': self.user.pk,
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -118,10 +119,10 @@ class TodoDetailViewTest(APITestCase):
         self.assertEqual(self.todo.task, 'Updated task')
 
     def test_partial_update_todo_as_author(self):
-        response = self.client.patch(self.url, {'is_completed': True})
+        response = self.client.patch(self.url, {'status': TaskStatus.DONE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.todo.refresh_from_db()
-        self.assertTrue(self.todo.is_completed)
+        self.assertEqual(self.todo.status, str(TaskStatus.DONE))
 
     def test_delete_todo_as_author(self):
         response = self.client.delete(self.url)

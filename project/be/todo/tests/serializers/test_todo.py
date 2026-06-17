@@ -35,7 +35,7 @@ class TodoSerializerTest(TestCase):
             todo_of=self.user
         )
         serializer = TodoSerializer(todo)
-        expected_fields = {'id', 'task', 'description', 'goal_set_date', 'set_to_complete', 'is_completed', 'todo_of'}
+        expected_fields = {'id', 'task', 'description', 'goal_set_date', 'set_to_complete', 'status', 'todo_of'}
         self.assertEqual(set(serializer.data.keys()), expected_fields)
 
     def test_missing_task_is_invalid(self):

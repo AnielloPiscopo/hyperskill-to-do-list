@@ -3,6 +3,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
+from todo.enums import TaskStatus
 from todo.models import Todo
 
 
@@ -23,8 +24,8 @@ class TodoModelTest(TestCase):
     def test_todo_creation(self):
         self.assertIsInstance(self.todo, Todo)
 
-    def test_default_is_completed_is_false(self):
-        self.assertFalse(self.todo.is_completed)
+    def test_default_status_is_todo(self):
+        self.assertEqual(self.todo.status, TaskStatus.TODO)
 
     def test_todo_fields(self):
         self.assertEqual(self.todo.task, 'Test task')
@@ -46,3 +47,10 @@ class TodoModelTest(TestCase):
     def test_description_max_length(self):
         max_length = Todo._meta.get_field('description').max_length
         self.assertEqual(max_length, 1024)
+
+    def test_str_returns_task_name(self):
+        self.assertEqual(str(self.todo), 'Test task')
+
+    def test_repr_contains_id_task_and_status(self):
+        expected = f'Todo(id={self.todo.id!r}, task={self.todo.task!r}, status={self.todo.status!r})'
+        self.assertEqual(repr(self.todo), expected)

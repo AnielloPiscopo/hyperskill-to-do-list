@@ -1,7 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
+from todo.enums import TaskStatus
 
 __all__ = ['Todo']
+
 
 class Todo(models.Model):
     id = models.AutoField(primary_key=True)
@@ -19,9 +21,11 @@ class Todo(models.Model):
     set_to_complete = models.DateField(
         help_text='Deadline for the task (YYYY-MM-DD)'
     )
-    is_completed = models.BooleanField(
-        default=False,
-        help_text='Whether the task has been completed or not'
+    status = models.CharField(
+        max_length=20,
+        choices=TaskStatus.choices,
+        default=TaskStatus.TODO,
+        help_text='Status of the task'
     )
     todo_of = models.ForeignKey(
         User,
@@ -33,4 +37,4 @@ class Todo(models.Model):
         return self.task
 
     def __repr__(self) -> str:
-        return f'Todo(id={self.id!r}, task={self.task!r}, is_completed={self.is_completed!r})'
+        return f'Todo(id={self.id!r}, task={self.task!r}, status={self.status!r})'
