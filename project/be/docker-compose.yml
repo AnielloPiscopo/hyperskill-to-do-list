@@ -22,7 +22,7 @@ services:
     depends_on:
       - db
     env_file:
-      - .env
+      - .env.docker
 
 volumes:
   postgres_data:
