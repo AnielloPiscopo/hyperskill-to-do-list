@@ -1,13 +1,13 @@
 from django.db import models
 from django.contrib.auth.models import User
-from todo.enums import TaskStatus
+from task.enums import TaskStatus
 
-__all__ = ['Todo']
+__all__ = ['Task']
 
 
-class Todo(models.Model):
+class Task(models.Model):
     id = models.AutoField(primary_key=True)
-    task = models.CharField(
+    title = models.CharField(
         max_length=50,
         help_text='Title of the task (max 50 characters)'
     )
@@ -27,14 +27,14 @@ class Todo(models.Model):
         default=TaskStatus.TODO,
         help_text='Status of the task'
     )
-    todo_of = models.ForeignKey(
+    user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         help_text='User who created the task'
     )
 
     def __str__(self) -> str:
-        return self.task
+        return self.title
 
     def __repr__(self) -> str:
-        return f'Todo(id={self.id!r}, task={self.task!r}, status={self.status!r})'
+        return f'Task(id={self.id!r}, title={self.title!r}, description={self.description!r}, status={self.status!r})'
