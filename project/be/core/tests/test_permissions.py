@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 
 from task.models import Task
-from task.permissions import IsAuthorOrReadOnly
+from core.permissions import IsAuthorOrReadOnly
 
 
 class IsAuthorOrReadOnlyTest(TestCase):

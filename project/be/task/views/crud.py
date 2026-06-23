@@ -2,9 +2,9 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAuthorOrReadOnly
 from task.models import Task
 from task.serializers import TaskSerializer
-from task.permissions import IsAuthorOrReadOnly
 
 __all__ = ['TaskDetailView', 'TaskListView']
 
@@ -38,7 +38,7 @@ class TaskListView(generics.ListCreateAPIView):
         return super().post(request, *args, **kwargs)
 
     def get_queryset(self) -> QuerySet:
-        return Task.objects.all().order_by('set_to_complete', 'status')
+        return Task.objects.filter(user=self.request.user, is_archived=False).order_by('set_to_complete', 'status')
 
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
@@ -101,3 +101,6 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     )
     def delete(self, request, *args, **kwargs):
         return super().delete(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return Task.objects.filter(user=self.request.user, is_archived=False)
