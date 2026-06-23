@@ -76,6 +76,30 @@ class TodoListViewTest(APITestCase):
         self.assertEqual(results[0]['title'], 'Todo task')
         self.assertEqual(results[1]['title'], 'Done task')
 
+    def test_list_excludes_archived_tasks(self):
+        Task.objects.create(
+            title='Archived task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user,
+            is_archived=True
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.data), 0)
+
+    def test_list_excludes_other_user_tasks(self):
+        other_user = User.objects.create_user(username='other', password='pass')
+        Task.objects.create(
+            title='Other task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=other_user
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(len(response.data), 0)
+
 
 class TodoDetailViewTest(APITestCase):
     client: APIClient
@@ -129,7 +153,7 @@ class TodoDetailViewTest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Task.objects.count(), 0)
 
-    def test_update_todo_as_non_author_returns_403(self):
+    def test_update_todo_as_non_author_returns_404(self):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.put(self.url, {
             'title': 'Hacked task',
@@ -137,12 +161,12 @@ class TodoDetailViewTest(APITestCase):
             'goal_set_date': '2024-01-01',
             'set_to_complete': '2024-01-31',
         })
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_delete_todo_as_non_author_returns_403(self):
+    def test_delete_todo_as_non_author_returns_404(self):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(self.url)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_retrieve_nonexistent_todo_returns_404(self):
         response = self.client.get('/tasks/9999/')
@@ -153,3 +177,15 @@ class TodoDetailViewTest(APITestCase):
         self.client.logout()
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_retrieve_other_user_task_returns_404(self):
+        other_user = User.objects.create_user(username='other', password='pass')
+        task = Task.objects.create(
+            title='Other task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=other_user
+        )
+        response = self.client.get(f'/tasks/{task.pk}/')
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
