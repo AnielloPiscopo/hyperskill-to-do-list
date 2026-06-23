@@ -2,9 +2,9 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from core.permissions import IsAuthorOrReadOnly
 from task.models import Task
 from task.serializers import TaskSerializer
-from task.permissions import IsAuthorOrReadOnly
 
 __all__ = ['TaskDetailView', 'TaskListView']
 
