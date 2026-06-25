@@ -1,14 +1,12 @@
 from django.contrib.auth.models import User
-from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase
 
 from board.models import Board
 
 
-class BoardListViewTest(TestCase):
+class BoardListViewTest(APITestCase):
     def setUp(self):
-        self.client = APIClient()
         self.user = User.objects.create_user(username='user1', password='pass123')
         self.other_user = User.objects.create_user(username='user2', password='pass123')
         self.board = Board.objects.create(title='Board 1', user=self.user)
@@ -71,9 +69,8 @@ class BoardListViewTest(TestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
-class BoardDetailViewTest(TestCase):
+class BoardDetailViewTest(APITestCase):
     def setUp(self):
-        self.client = APIClient()
         self.user = User.objects.create_user(username='user1', password='pass123')
         self.other_user = User.objects.create_user(username='user2', password='pass123')
         self.board = Board.objects.create(title='Board 1', user=self.user)
