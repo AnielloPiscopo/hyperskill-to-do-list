@@ -1,5 +1,8 @@
+from typing import cast
+
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import ForeignKey
 from django.test import TestCase
 
 from board.models import Board
@@ -74,11 +77,11 @@ class BoardModelTest(TestCase):
         self.assertEqual(field.default, '#FFFFFF')
 
     def test_user_on_delete_cascade(self):
-        field = Board._meta.get_field('user')
+        field = cast(ForeignKey, Board._meta.get_field('user'))
         self.assertEqual(field.remote_field.on_delete, models.CASCADE)
 
     def test_user_related_name(self):
-        field = Board._meta.get_field('user')
+        field = cast(ForeignKey, Board._meta.get_field('user'))
         self.assertEqual(field.remote_field.related_name, 'boards')
 
     # --- defaults ---
