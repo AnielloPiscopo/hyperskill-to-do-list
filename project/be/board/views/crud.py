@@ -2,6 +2,7 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
 from core.permissions import IsAuthorOrReadOnly
 from board.models import Board
 from board.serializers import BoardSerializer
@@ -11,6 +12,10 @@ __all__ = ['BoardListView', 'BoardDetailView']
 class BoardListView(generics.ListCreateAPIView):
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
+
+    filter_backends = [SearchFilter, OrderingFilter]
+    search_fields = ['title', 'description']
+    ordering_fields = ['created_at', 'title']
 
     @swagger_auto_schema(
         operation_summary='List all boards',

@@ -2,6 +2,8 @@ from django.db.models import QuerySet
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter, OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from core.permissions import IsAuthorOrReadOnly
 from task.models import Task
 from task.serializers import TaskSerializer
@@ -11,6 +13,11 @@ __all__ = ['TaskDetailView', 'TaskListView']
 class TaskListView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['status', 'board']
+    search_fields = ['title', 'description']
+    ordering_fields = ['set_to_complete', 'status', 'created_at']
 
     @swagger_auto_schema(
         operation_summary='List all tasks',
@@ -45,7 +52,6 @@ class TaskListView(generics.ListCreateAPIView):
 
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
-    queryset = Task.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     @swagger_auto_schema(

@@ -34,22 +34,22 @@ class BoardListViewTest(APITestCase):
         Board.objects.create(title='Other Board', user=self.other_user)
         self.client.force_authenticate(user=self.user)
         response = self.client.get('/boards/')
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['title'], 'Board 1')
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Board 1')
 
     def test_list_excludes_archived_boards(self):
         self.board.is_archived = True
         self.board.save()
         self.client.force_authenticate(user=self.user)
         response = self.client.get('/boards/')
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
 
     def test_list_ordered_by_title(self):
         Board.objects.create(title='Alpha', user=self.user)
         Board.objects.create(title='Zeta', user=self.user)
         self.client.force_authenticate(user=self.user)
         response = self.client.get('/boards/')
-        titles = [b['title'] for b in response.data]
+        titles = [b['title'] for b in response.data['results']]
         self.assertEqual(titles, sorted(titles))
 
     # --- POST ---
@@ -69,6 +69,44 @@ class BoardListViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/boards/', {})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # --- search ---
+
+    def test_search_by_title(self):
+        Board.objects.create(title='Meeting board', user=self.user)
+        Board.objects.create(title='Other board', user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/boards/', {'search': 'Meeting'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Meeting board')
+
+    def test_search_by_description(self):
+        Board.objects.create(title='Board 1', description='Contains meeting notes', user=self.user)
+        Board.objects.create(title='Board 2', description='Other description', user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/boards/', {'search': 'meeting'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Board 1')
+
+    # --- ordering ---
+
+    def test_ordering_by_title(self):
+        Board.objects.create(title='Zeta', user=self.user)
+        Board.objects.create(title='Alpha', user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/boards/', {'ordering': 'title'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        titles = [b['title'] for b in response.data['results']]
+        self.assertEqual(titles, sorted(titles))
+
+    def test_ordering_by_created_at_desc(self):
+        Board.objects.create(title='Second board', user=self.user)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/boards/', {'ordering': '-created_at'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'][0]['title'], 'Second board')
 
 
 class BoardDetailViewTest(APITestCase):

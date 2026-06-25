@@ -7,6 +7,8 @@ from rest_framework.test import APIClient, APITestCase
 from task.enums import TaskStatus
 from task.models import Task
 
+from board.models import Board
+
 
 class TodoListViewTest(APITestCase):
     client: APIClient
@@ -72,7 +74,7 @@ class TodoListViewTest(APITestCase):
         )
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        results = response.data
+        results = response.data['results']
         self.assertEqual(results[0]['title'], 'Todo task')
         self.assertEqual(results[1]['title'], 'Done task')
 
@@ -86,7 +88,7 @@ class TodoListViewTest(APITestCase):
             is_archived=True
         )
         response = self.client.get(self.url)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
 
     def test_list_excludes_other_user_tasks(self):
         other_user = User.objects.create_user(username='other', password='pass')
@@ -98,7 +100,111 @@ class TodoListViewTest(APITestCase):
             user=other_user
         )
         response = self.client.get(self.url)
-        self.assertEqual(len(response.data), 0)
+        self.assertEqual(response.data['count'], 0)
+
+    def test_filter_by_status(self):
+        Task.objects.create(
+            title='Todo task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            status=TaskStatus.TODO,
+            user=self.user
+        )
+        Task.objects.create(
+            title='Done task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            status=TaskStatus.DONE,
+            user=self.user
+        )
+        response = self.client.get(self.url, {'status': TaskStatus.TODO})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Todo task')
+
+    def test_filter_by_board(self):
+        board = Board.objects.create(title='Board 1', user=self.user)
+        Task.objects.create(
+            title='Task with board',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user,
+            board=board
+        )
+        Task.objects.create(
+            title='Task without board',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        response = self.client.get(self.url, {'board': board.pk})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Task with board')
+
+    def test_search_by_title(self):
+        Task.objects.create(
+            title='Meeting task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        Task.objects.create(
+            title='Other task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        response = self.client.get(self.url, {'search': 'Meeting'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Meeting task')
+
+    def test_search_by_description(self):
+        Task.objects.create(
+            title='Task 1',
+            description='Contains meeting notes',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        Task.objects.create(
+            title='Task 2',
+            description='Other description',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        response = self.client.get(self.url, {'search': 'meeting'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Task 1')
+
+    def test_ordering_by_set_to_complete(self):
+        Task.objects.create(
+            title='Later task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 2, 28),
+            user=self.user
+        )
+        Task.objects.create(
+            title='Earlier task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 15),
+            user=self.user
+        )
+        response = self.client.get(self.url, {'ordering': 'set_to_complete'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['results'][0]['title'], 'Earlier task')
+        self.assertEqual(response.data['results'][1]['title'], 'Later task')
 
 
 class TodoDetailViewTest(APITestCase):
