@@ -1,11 +1,13 @@
 from django.contrib.auth.models import User
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
 from board.models import Board
 
 
 class BoardListViewTest(APITestCase):
+    client: APIClient
+
     def setUp(self):
         self.user = User.objects.create_user(username='user1', password='pass123')
         self.other_user = User.objects.create_user(username='user2', password='pass123')
@@ -70,6 +72,8 @@ class BoardListViewTest(APITestCase):
 
 
 class BoardDetailViewTest(APITestCase):
+    client: APIClient
+
     def setUp(self):
         self.user = User.objects.create_user(username='user1', password='pass123')
         self.other_user = User.objects.create_user(username='user2', password='pass123')
