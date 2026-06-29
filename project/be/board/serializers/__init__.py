@@ -1,3 +1,3 @@
-from .board import BoardSerializer
+from .board import BoardSerializer, BoardDetailSerializer
 
-__all__ = ['BoardSerializer']
+__all__ = ['BoardSerializer', 'BoardDetailSerializer']

@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from core.permissions import IsAuthorOrReadOnly
 from board.models import Board
-from board.serializers import BoardSerializer
+from board.serializers import BoardSerializer, BoardDetailSerializer
 
 __all__ = ['BoardListView', 'BoardDetailView']
 
@@ -49,9 +49,13 @@ class BoardListView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = BoardSerializer
     queryset = Board.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return BoardDetailSerializer
+        return BoardSerializer
 
     @swagger_auto_schema(
         operation_summary='Retrieve a board',
