@@ -1,5 +1,5 @@
 from django.db.models import QuerySet
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -17,26 +17,26 @@ class BoardListView(generics.ListCreateAPIView):
     search_fields = ['title', 'description']
     ordering_fields = ['created_at', 'title']
 
-    @swagger_auto_schema(
-        operation_summary='List all boards',
-        operation_description='Returns all boards',
+    @extend_schema(
+        summary='List all boards',
+        description='Returns all boards.',
         tags=['boards'],
         responses={
             200: BoardSerializer(many=True),
-            403: 'Authentication credentials were not provided.'
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
         }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Create a new board',
-        operation_description='Creates a new board. The author is automatically set to the logged in user.',
+    @extend_schema(
+        summary='Create a new board',
+        description='Creates a new board. The author is automatically set to the logged in user.',
         tags=['boards'],
         responses={
             201: BoardSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Authentication credentials were not provided.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
         }
     )
     def post(self, request, *args, **kwargs):
@@ -48,8 +48,8 @@ class BoardListView(generics.ListCreateAPIView):
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
 
+
 class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Board.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_serializer_class(self):
@@ -57,55 +57,55 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             return BoardDetailSerializer
         return BoardSerializer
 
-    @swagger_auto_schema(
-        operation_summary='Retrieve a board',
-        operation_description='Returns the details of a specific board by its ID.',
+    @extend_schema(
+        summary='Retrieve a board',
+        description='Returns the details of a specific board by its ID, including its tasks.',
         tags=['boards'],
         responses={
-            200: BoardSerializer,
-            403: 'Authentication credentials were not provided.',
-            404: 'Board not found.'
+            200: BoardDetailSerializer,
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            404: OpenApiResponse(description='Board not found.'),
         }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Update a board',
-        operation_description='Fully updates a board. Only the author can update it.',
+    @extend_schema(
+        summary='Update a board',
+        description='Fully updates a board. Only the author can update it.',
         tags=['boards'],
         responses={
             200: BoardSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Board not found.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Board not found.'),
         }
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Partially update a board',
-        operation_description='Partially updates a board. Only the author can update it.',
+    @extend_schema(
+        summary='Partially update a board',
+        description='Partially updates a board. Only the author can update it.',
         tags=['boards'],
         responses={
             200: BoardSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Board not found.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Board not found.'),
         }
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Delete a board',
-        operation_description='Deletes a board. Only the author can delete it.',
+    @extend_schema(
+        summary='Delete a board',
+        description='Deletes a board. Only the author can delete it.',
         tags=['boards'],
         responses={
-            204: 'Board deleted successfully.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Board not found.'
+            204: OpenApiResponse(description='Board deleted successfully.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Board not found.'),
         }
     )
     def delete(self, request, *args, **kwargs):

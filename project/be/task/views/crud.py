@@ -1,5 +1,5 @@
 from django.db.models import QuerySet
-from drf_yasg.utils import swagger_auto_schema
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -10,6 +10,7 @@ from task.serializers import TaskSerializer
 
 __all__ = ['TaskDetailView', 'TaskListView']
 
+
 class TaskListView(generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
@@ -19,26 +20,26 @@ class TaskListView(generics.ListCreateAPIView):
     search_fields = ['title', 'description']
     ordering_fields = ['set_to_complete', 'status', 'created_at']
 
-    @swagger_auto_schema(
-        operation_summary='List all tasks',
-        operation_description='Returns all tasks ordered by completion status, deadline and creation date.',
+    @extend_schema(
+        summary='List all tasks',
+        description='Returns all tasks ordered by completion status, deadline and creation date.',
         tags=['tasks'],
         responses={
             200: TaskSerializer(many=True),
-            403: 'Authentication credentials were not provided.'
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
         }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Create a new task',
-        operation_description='Creates a new task. The author is automatically set to the logged in user.',
+    @extend_schema(
+        summary='Create a new task',
+        description='Creates a new task. The author is automatically set to the logged in user.',
         tags=['tasks'],
         responses={
             201: TaskSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Authentication credentials were not provided.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
         }
     )
     def post(self, request, *args, **kwargs):
@@ -50,59 +51,60 @@ class TaskListView(generics.ListCreateAPIView):
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
 
+
 class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
-    @swagger_auto_schema(
-        operation_summary='Retrieve a task',
-        operation_description='Returns the details of a specific task by its ID.',
+    @extend_schema(
+        summary='Retrieve a task',
+        description='Returns the details of a specific task by its ID.',
         tags=['tasks'],
         responses={
             200: TaskSerializer,
-            403: 'Authentication credentials were not provided.',
-            404: 'Task not found.'
+            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            404: OpenApiResponse(description='Task not found.'),
         }
     )
     def get(self, request, *args, **kwargs):
         return super().get(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Update a task',
-        operation_description='Fully updates a task. Only the author can update it.',
+    @extend_schema(
+        summary='Update a task',
+        description='Fully updates a task. Only the author can update it.',
         tags=['tasks'],
         responses={
             200: TaskSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Task not found.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Task not found.'),
         }
     )
     def put(self, request, *args, **kwargs):
         return super().put(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Partially update a task',
-        operation_description='Partially updates a task. Only the author can update it.',
+    @extend_schema(
+        summary='Partially update a task',
+        description='Partially updates a task. Only the author can update it.',
         tags=['tasks'],
         responses={
             200: TaskSerializer,
-            400: 'Bad request — invalid data.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Task not found.'
+            400: OpenApiResponse(description='Bad request — invalid data.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Task not found.'),
         }
     )
     def patch(self, request, *args, **kwargs):
         return super().patch(request, *args, **kwargs)
 
-    @swagger_auto_schema(
-        operation_summary='Delete a task',
-        operation_description='Deletes a task. Only the author can delete it.',
+    @extend_schema(
+        summary='Delete a task',
+        description='Deletes a task. Only the author can delete it.',
         tags=['tasks'],
         responses={
-            204: 'Task deleted successfully.',
-            403: 'Not authorized or not authenticated.',
-            404: 'Task not found.'
+            204: OpenApiResponse(description='Task deleted successfully.'),
+            403: OpenApiResponse(description='Not authorized or not authenticated.'),
+            404: OpenApiResponse(description='Task not found.'),
         }
     )
     def delete(self, request, *args, **kwargs):

@@ -13,9 +13,24 @@ REST_FRAMEWORK = {
         'rest_framework.filters.SearchFilter',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
-SWAGGER_SETTINGS = {
-    'LOGIN_URL': '/admin/login/',
-    'LOGOUT_URL': '/admin/logout/',
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'To-Do List API',
+    'DESCRIPTION': 'API for managing tasks and boards',
+    'VERSION': '1.0.0',
+    'SORT_OPERATIONS': False,
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SECURITY': [{'tokenAuth': []}],
+    'COMPONENTS': {
+        'securitySchemes': {
+            'tokenAuth': {
+                'type': 'apiKey',
+                'in': 'header',
+                'name': 'Authorization',
+                'description': 'Token-based authentication. Format: `Token <your_token>`'
+            }
+        }
+    },
 }
