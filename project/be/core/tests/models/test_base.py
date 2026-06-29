@@ -85,3 +85,27 @@ class BaseModelTest(TransactionTestCase):
         self.instance.save()
         self.instance.refresh_from_db()
         self.assertTrue(self.instance.is_archived)
+
+    def test_archive_method_sets_is_archived_true(self):
+        self.instance.archive()
+        self.instance.refresh_from_db()
+        self.assertTrue(self.instance.is_archived)
+
+    def test_restore_method_sets_is_archived_false(self):
+        self.instance.archive()
+        self.instance.restore()
+        self.instance.refresh_from_db()
+        self.assertFalse(self.instance.is_archived)
+
+    def test_archive_method_updates_updated_at(self):
+        original = self.instance.updated_at
+        self.instance.archive()
+        self.instance.refresh_from_db()
+        self.assertGreaterEqual(self.instance.updated_at, original)
+
+    def test_restore_method_updates_updated_at(self):
+        self.instance.archive()
+        after_archive = self.instance.updated_at
+        self.instance.restore()
+        self.instance.refresh_from_db()
+        self.assertGreaterEqual(self.instance.updated_at, after_archive)

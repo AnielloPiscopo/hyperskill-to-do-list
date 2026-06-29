@@ -8,7 +8,7 @@ class RegisterViewTest(APITestCase):
 
     def setUp(self):
         self.client = APIClient()
-        self.url = '/register/'
+        self.url = '/auth/register/'
         self.valid_data = {
             'username': 'newuser',
             'email': 'newuser@example.com',

@@ -1,9 +1,12 @@
+import datetime
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 
 from board.models import Board
-from board.serializers import BoardSerializer
+from board.serializers import BoardSerializer, BoardDetailSerializer
 from core.serializers import BaseModelSerializer
+from task.models import Task
 
 
 class BoardSerializerTest(TestCase):
@@ -86,3 +89,69 @@ class BoardSerializerTest(TestCase):
     def test_color_optional(self):
         serializer = BoardSerializer(data={'title': 'No color board'})
         self.assertTrue(serializer.is_valid(), serializer.errors)
+
+
+class BoardDetailSerializerTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='pass123')
+        self.board = Board.objects.create(
+            title='Test Board',
+            description='A description',
+            color='#FF0000',
+            user=self.user,
+        )
+        self.active_task = Task.objects.create(
+            title='Active Task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user,
+            board=self.board,
+            is_archived=False,
+        )
+        self.archived_task = Task.objects.create(
+            title='Archived Task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user,
+            board=self.board,
+            is_archived=True,
+        )
+
+    # --- inheritance ---
+
+    def test_is_subclass_of_board_serializer(self):
+        self.assertTrue(issubclass(BoardDetailSerializer, BoardSerializer))
+
+    # --- tasks field ---
+
+    def test_contains_tasks_field(self):
+        serializer = BoardDetailSerializer(self.board)
+        self.assertIn('tasks', serializer.data)
+
+    def test_tasks_field_contains_active_tasks(self):
+        serializer = BoardDetailSerializer(self.board)
+        task_titles = [t['title'] for t in serializer.data['tasks']]
+        self.assertIn('Active Task', task_titles)
+
+    def test_tasks_field_excludes_archived_tasks(self):
+        serializer = BoardDetailSerializer(self.board)
+        task_titles = [t['title'] for t in serializer.data['tasks']]
+        self.assertNotIn('Archived Task', task_titles)
+
+    def test_tasks_field_is_empty_when_no_active_tasks(self):
+        self.active_task.is_archived = True
+        self.active_task.save()
+        serializer = BoardDetailSerializer(self.board)
+        self.assertEqual(len(serializer.data['tasks']), 0)
+
+    # --- inherited fields ---
+
+    def test_user_field_excluded(self):
+        serializer = BoardDetailSerializer(self.board)
+        self.assertNotIn('user', serializer.data)
+
+    def test_is_archived_field_excluded(self):
+        serializer = BoardDetailSerializer(self.board)
+        self.assertNotIn('is_archived', serializer.data)
