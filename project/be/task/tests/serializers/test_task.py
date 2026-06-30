@@ -1,8 +1,12 @@
 import datetime
+from unittest.mock import Mock
 
 from django.contrib.auth.models import User
 from django.test import TestCase
+from rest_framework import serializers
 
+from board.models import Board
+from core.serializers import BaseModelSerializer
 from task.enums import TaskStatus
 from task.models import Task
 from task.serializers import TaskSerializer
@@ -21,7 +25,6 @@ class TaskSerializerTest(TestCase):
             set_to_complete=datetime.date(2024, 1, 31),
             user=self.user
         )
-        # TaskSerializer excludes 'user' and 'is_archived'
         self.valid_data = {
             'title': 'New task',
             'description': 'New description',
@@ -30,15 +33,15 @@ class TaskSerializerTest(TestCase):
             'status': TaskStatus.TODO,
         }
 
-    # --- fields ---
+    # --- meta ---
 
-    def test_contains_expected_fields(self):
-        serializer = TaskSerializer(self.task)
-        self.assertSetEqual(
-            set(serializer.data.keys()),
-            {'id', 'title', 'description', 'goal_set_date', 'set_to_complete',
-             'status', 'board', 'updated_at', 'created_at'}
-        )
+    def test_meta_model_is_task(self):
+        self.assertIs(TaskSerializer.Meta.model, Task)
+
+    def test_is_subclass_of_base_model_serializer(self):
+        self.assertTrue(issubclass(TaskSerializer, BaseModelSerializer))
+
+    # --- excluded fields ---
 
     def test_user_field_excluded(self):
         serializer = TaskSerializer(self.task)
@@ -48,15 +51,45 @@ class TaskSerializerTest(TestCase):
         serializer = TaskSerializer(self.task)
         self.assertNotIn('is_archived', serializer.data)
 
+    # --- read-only fields (inherited from BaseModelSerializer) ---
+
+    def test_id_is_read_only(self):
+        serializer = TaskSerializer(self.task)
+        self.assertTrue(serializer.fields['id'].read_only)
+
+    def test_created_at_is_read_only(self):
+        serializer = TaskSerializer(self.task)
+        self.assertTrue(serializer.fields['created_at'].read_only)
+
+    def test_updated_at_is_read_only(self):
+        serializer = TaskSerializer(self.task)
+        self.assertTrue(serializer.fields['updated_at'].read_only)
+
     # --- serialization ---
 
-    def test_serializes_task_fields_correctly(self):
+    def test_contains_expected_fields(self):
         serializer = TaskSerializer(self.task)
-        data = serializer.data
-        self.assertEqual(data['title'], 'Test task')
-        self.assertEqual(data['description'], 'Test description')
-        self.assertEqual(data['goal_set_date'], '2024-01-01')
-        self.assertEqual(data['set_to_complete'], '2024-01-31')
+        self.assertSetEqual(
+            set(serializer.data.keys()),
+            {'id', 'title', 'description', 'goal_set_date', 'set_to_complete',
+             'status', 'board', 'updated_at', 'created_at'}
+        )
+
+    def test_serializes_title(self):
+        serializer = TaskSerializer(self.task)
+        self.assertEqual(serializer.data['title'], 'Test task')
+
+    def test_serializes_description(self):
+        serializer = TaskSerializer(self.task)
+        self.assertEqual(serializer.data['description'], 'Test description')
+
+    def test_serializes_goal_set_date(self):
+        serializer = TaskSerializer(self.task)
+        self.assertEqual(serializer.data['goal_set_date'], '2024-01-01')
+
+    def test_serializes_set_to_complete(self):
+        serializer = TaskSerializer(self.task)
+        self.assertEqual(serializer.data['set_to_complete'], '2024-01-31')
 
     def test_default_status_is_todo(self):
         serializer = TaskSerializer(self.task)
@@ -119,6 +152,30 @@ class TaskSerializerTest(TestCase):
         serializer = TaskSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('goal_set_date', serializer.errors)
+
+    # --- validate_board ---
+
+    def test_validate_board_returns_none_when_board_is_none(self):
+        serializer = TaskSerializer()
+        result = serializer.validate_board(None)
+        self.assertIsNone(result)
+
+    def test_validate_board_returns_board_when_owner_matches(self):
+        board = Board.objects.create(title='My Board', user=self.user)
+        request = Mock()
+        request.user = self.user
+        serializer = TaskSerializer(context={'request': request})
+        result = serializer.validate_board(board)
+        self.assertEqual(result, board)
+
+    def test_validate_board_raises_error_when_owner_does_not_match(self):
+        other_user = User.objects.create_user(username='other', password='pass')
+        board = Board.objects.create(title='Other Board', user=other_user)
+        request = Mock()
+        request.user = self.user
+        serializer = TaskSerializer(context={'request': request})
+        with self.assertRaises(serializers.ValidationError):
+            serializer.validate_board(board)
 
     # --- save ---
 
