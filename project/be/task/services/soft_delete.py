@@ -21,9 +21,9 @@ def restore_task(task: Task):
 def archive_tasks(user: User, ids: Optional[list] = None) -> None:
     qs: QuerySet[Task] = Task.objects.filter(user=user, is_archived=False)
 
-    _soft_delete_all(qs, ids)
+    _soft_delete_all(qs, ids, archive=True)
 
 def restore_tasks(user: User, ids: Optional[list] = None) -> None:
     qs: QuerySet[Task] = Task.objects.filter(user=user, is_archived=True)
 
-    _soft_delete_all(qs, ids)
+    _soft_delete_all(qs, ids, archive=False)
