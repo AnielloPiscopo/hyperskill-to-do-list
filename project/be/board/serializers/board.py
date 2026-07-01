@@ -2,6 +2,7 @@ from collections import OrderedDict
 from typing import Any
 
 from rest_framework import serializers
+from core.constants.api import validation_msg
 from core.utils import validators
 from core.serializers import BaseModelSerializer
 from task.serializers import TaskSerializer
@@ -17,7 +18,7 @@ class BoardSerializer(BaseModelSerializer):
 
     def validate_color(self, color: str) -> str: # noqa
         if not validators.is_valid_hex_color(color):
-            raise serializers.ValidationError('Color must be a valid hex color code (e.g. #FF0000).')
+            raise serializers.ValidationError(validation_msg.INVALID_HEX_COLOR)
         return color.upper()
 
 

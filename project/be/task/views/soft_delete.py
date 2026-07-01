@@ -4,8 +4,9 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse
-
+from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
+from task.constants.api import payloads, responses as task_responses
 from task.models import Task
 from task.services import archive_task, restore_task, archive_tasks, restore_tasks
 
@@ -20,9 +21,9 @@ class TaskArchiveView(APIView):
         description='Archives a task. Only the author can archive it.',
         tags=['tasks'],
         responses={
-            200: OpenApiResponse(description='Task archived successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Task not found.'),
+            200: task_responses.RESPONSE_200_ARCHIVED,
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def post(self, request, pk):
@@ -40,9 +41,9 @@ class TaskRestoreView(APIView):
         description='Restores an archived task. Only the author can restore it.',
         tags=['tasks'],
         responses={
-            200: OpenApiResponse(description='Task restored successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Task not found.'),
+            200: task_responses.RESPONSE_200_RESTORED,
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def post(self, request, pk):
@@ -59,6 +60,7 @@ class TaskArchiveAllView(APIView):
         summary='Archive multiple tasks',
         description='Archives all tasks or a subset by ids. If ids is empty or not provided, archives all tasks.',
         tags=['tasks'],
+        examples=[payloads.TASK_IDS_REQUEST_EXAMPLE, payloads.TASK_IDS_ALL_REQUEST_EXAMPLE],
         request={
             'application/json': {
                 'type': 'object',
@@ -72,8 +74,8 @@ class TaskArchiveAllView(APIView):
             }
         },
         responses={
-            200: OpenApiResponse(description='Tasks archived successfully.'),
-            403: OpenApiResponse(description='Not authenticated.'),
+            200: task_responses.RESPONSE_200_ARCHIVED_ALL,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request):
@@ -90,6 +92,7 @@ class TaskRestoreAllView(APIView):
         description='Restores all archived tasks or a subset by ids. If ids is empty or not provided, '
                     'restores all tasks.',
         tags=['tasks'],
+        examples=[payloads.TASK_IDS_REQUEST_EXAMPLE, payloads.TASK_IDS_ALL_REQUEST_EXAMPLE],
         request={
             'application/json': {
                 'type': 'object',
@@ -103,8 +106,8 @@ class TaskRestoreAllView(APIView):
             }
         },
         responses={
-            200: OpenApiResponse(description='Tasks restored successfully.'),
-            403: OpenApiResponse(description='Not authenticated.'),
+            200: task_responses.RESPONSE_200_RESTORED_ALL,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request):

@@ -4,7 +4,9 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
+from task.constants.api import payloads, responses as task_responses
 from task.models import Task
 from task.serializers import TaskSerializer
 
@@ -24,9 +26,10 @@ class TaskListView(generics.ListCreateAPIView):
         summary='List all tasks',
         description='Returns all tasks ordered by completion status, deadline and creation date.',
         tags=['tasks'],
+        examples=[payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             200: TaskSerializer(many=True),
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            403: core_responses.RESPONSE_403,
         }
     )
     def get(self, request, *args, **kwargs):
@@ -36,10 +39,11 @@ class TaskListView(generics.ListCreateAPIView):
         summary='Create a new task',
         description='Creates a new task. The author is automatically set to the logged in user.',
         tags=['tasks'],
+        examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             201: TaskSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            400: core_responses.RESPONSE_400,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request, *args, **kwargs):
@@ -60,10 +64,11 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Retrieve a task',
         description='Returns the details of a specific task by its ID.',
         tags=['tasks'],
+        examples=[payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             200: TaskSerializer,
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
-            404: OpenApiResponse(description='Task not found.'),
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def get(self, request, *args, **kwargs):
@@ -73,11 +78,12 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Update a task',
         description='Fully updates a task. Only the author can update it.',
         tags=['tasks'],
+        examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             200: TaskSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Task not found.'),
+            400: core_responses.RESPONSE_400,
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def put(self, request, *args, **kwargs):
@@ -87,11 +93,12 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Partially update a task',
         description='Partially updates a task. Only the author can update it.',
         tags=['tasks'],
+        examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             200: TaskSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Task not found.'),
+            400: core_responses.RESPONSE_400,
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def patch(self, request, *args, **kwargs):
@@ -102,9 +109,9 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Deletes a task. Only the author can delete it.',
         tags=['tasks'],
         responses={
-            204: OpenApiResponse(description='Task deleted successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Task not found.'),
+            204: task_responses.RESPONSE_204_DELETED,
+            403: core_responses.RESPONSE_403,
+            404: task_responses.RESPONSE_404,
         }
     )
     def delete(self, request, *args, **kwargs):

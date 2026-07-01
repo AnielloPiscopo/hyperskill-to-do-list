@@ -1,0 +1,1 @@
+BOARD_NOT_YOURS = 'This board does not belong to you.'

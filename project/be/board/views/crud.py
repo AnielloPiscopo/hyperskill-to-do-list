@@ -3,11 +3,14 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
+from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
+from board.constants.api import payloads, responses as board_responses
 from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
 
 __all__ = ['BoardListView', 'BoardDetailView']
+
 
 class BoardListView(generics.ListCreateAPIView):
     serializer_class = BoardSerializer
@@ -21,9 +24,10 @@ class BoardListView(generics.ListCreateAPIView):
         summary='List all boards',
         description='Returns all boards.',
         tags=['boards'],
+        examples=[payloads.BOARD_RESPONSE_EXAMPLE],
         responses={
             200: BoardSerializer(many=True),
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            403: core_responses.RESPONSE_403
         }
     )
     def get(self, request, *args, **kwargs):
@@ -33,10 +37,11 @@ class BoardListView(generics.ListCreateAPIView):
         summary='Create a new board',
         description='Creates a new board. The author is automatically set to the logged in user.',
         tags=['boards'],
+        examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
         responses={
             201: BoardSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
+            400: core_responses.RESPONSE_400,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request, *args, **kwargs):
@@ -61,10 +66,11 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Retrieve a board',
         description='Returns the details of a specific board by its ID, including its tasks.',
         tags=['boards'],
+        examples=[payloads.BOARD_DETAIL_RESPONSE_EXAMPLE],
         responses={
             200: BoardDetailSerializer,
-            403: OpenApiResponse(description='Authentication credentials were not provided.'),
-            404: OpenApiResponse(description='Board not found.'),
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def get(self, request, *args, **kwargs):
@@ -74,6 +80,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Update a board',
         description='Fully updates a board. Only the author can update it.',
         tags=['boards'],
+        examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
         responses={
             200: BoardSerializer,
             400: OpenApiResponse(description='Bad request — invalid data.'),
@@ -88,11 +95,12 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Partially update a board',
         description='Partially updates a board. Only the author can update it.',
         tags=['boards'],
+        examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
         responses={
             200: BoardSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Board not found.'),
+            400: core_responses.RESPONSE_400,
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def patch(self, request, *args, **kwargs):
@@ -103,9 +111,9 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Deletes a board. Only the author can delete it.',
         tags=['boards'],
         responses={
-            204: OpenApiResponse(description='Board deleted successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Board not found.'),
+            204: board_responses.RESPONSE_204_DELETED,
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def delete(self, request, *args, **kwargs):
