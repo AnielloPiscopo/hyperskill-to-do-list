@@ -1,7 +1,7 @@
 from typing import Any
 from datetime import date
 from rest_framework import serializers
-from core.utils import is_valid_date_range
+from core.utils import validators
 from core.serializers import BaseModelSerializer
 from task.models import Task
 from board.models import Board
@@ -31,9 +31,10 @@ class TaskSerializer(BaseModelSerializer):
         goal_set_date: date = data.get('goal_set_date')
         set_to_complete: date = data.get('set_to_complete')
 
-        if not is_valid_date_range(goal_set_date, set_to_complete):
-            raise serializers.ValidationError({
-                'set_to_complete': 'Deadline must be equal or after the goal set date.'
-            })
+        if goal_set_date is not None and set_to_complete is not None:
+            if not validators.is_valid_date_range(goal_set_date, set_to_complete):
+                raise serializers.ValidationError({
+                    'set_to_complete': 'Deadline must be equal or after the goal set date.'
+                })
 
         return data

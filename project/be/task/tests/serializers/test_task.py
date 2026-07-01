@@ -153,6 +153,35 @@ class TaskSerializerTest(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('goal_set_date', serializer.errors)
 
+    # --- validate_title ---
+
+    def test_validate_title_raises_for_blank(self):
+        serializer = TaskSerializer()
+        with self.assertRaises(serializers.ValidationError):
+            serializer.validate_title('')
+
+    def test_validate_title_raises_for_whitespace_only(self):
+        serializer = TaskSerializer()
+        with self.assertRaises(serializers.ValidationError):
+            serializer.validate_title('   ')
+
+    def test_validate_title_returns_valid_title(self):
+        serializer = TaskSerializer()
+        self.assertEqual(serializer.validate_title('Valid title'), 'Valid title')
+
+    # --- validate (date range) ---
+
+    def test_set_to_complete_before_goal_set_date_is_invalid(self):
+        data = {**self.valid_data, 'goal_set_date': '2024-01-31', 'set_to_complete': '2024-01-01'}
+        serializer = TaskSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('set_to_complete', serializer.errors)
+
+    def test_set_to_complete_equal_to_goal_set_date_is_valid(self):
+        data = {**self.valid_data, 'goal_set_date': '2024-01-01', 'set_to_complete': '2024-01-01'}
+        serializer = TaskSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
     # --- validate_board ---
 
     def test_validate_board_returns_none_when_board_is_none(self):
