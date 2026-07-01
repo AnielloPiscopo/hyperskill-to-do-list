@@ -5,10 +5,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 from drf_spectacular.utils import OpenApiTypes
-
+from core.constants.api import responses as core_responses
+from core.permissions import IsAuthorOrReadOnly
+from board.constants.api import payloads, responses as board_responses
 from board.models import Board
 from board.services import archive_board, restore_board, archive_boards, restore_boards
-from core.permissions import IsAuthorOrReadOnly
 
 __all__ = ['BoardArchiveView', 'BoardRestoreView', 'BoardArchiveAllView', 'BoardRestoreAllView']
 
@@ -21,9 +22,9 @@ class BoardArchiveView(APIView):
         description='Archives a board and all its tasks. Only the author can archive it.',
         tags=['boards'],
         responses={
-            200: OpenApiResponse(description='Board archived successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Board not found.'),
+            200: board_responses.RESPONSE_200_ARCHIVED,
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def post(self, request, pk):
@@ -50,9 +51,9 @@ class BoardRestoreView(APIView):
             )
         ],
         responses={
-            200: OpenApiResponse(description='Board restored successfully.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Board not found.'),
+            200: board_responses.RESPONSE_200_RESTORED,
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def post(self, request, pk):
@@ -70,6 +71,7 @@ class BoardArchiveAllView(APIView):
         summary='Archive multiple boards',
         description='Archives all boards or a subset by ids. If ids is empty or not provided, archives all boards.',
         tags=['boards'],
+        examples=[payloads.BOARD_IDS_REQUEST_EXAMPLE, payloads.BOARD_IDS_ALL_REQUEST_EXAMPLE],
         request={
             'application/json': {
                 'type': 'object',
@@ -83,8 +85,8 @@ class BoardArchiveAllView(APIView):
             }
         },
         responses={
-            200: OpenApiResponse(description='Boards archived successfully.'),
-            403: OpenApiResponse(description='Not authenticated.'),
+            200: board_responses.RESPONSE_200_ARCHIVED_ALL,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request):
@@ -109,6 +111,7 @@ class BoardRestoreAllView(APIView):
                 required=False,
             )
         ],
+        examples=[payloads.BOARD_IDS_REQUEST_EXAMPLE, payloads.BOARD_IDS_ALL_REQUEST_EXAMPLE],
         request={
             'application/json': {
                 'type': 'object',
@@ -122,8 +125,8 @@ class BoardRestoreAllView(APIView):
             }
         },
         responses={
-            200: OpenApiResponse(description='Boards restored successfully.'),
-            403: OpenApiResponse(description='Not authenticated.'),
+            200: board_responses.RESPONSE_200_RESTORED_ALL,
+            403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request):
