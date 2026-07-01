@@ -90,6 +90,23 @@ class BoardSerializerTest(TestCase):
         serializer = BoardSerializer(data={'title': 'No color board'})
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
+    # --- validate_color ---
+
+    def test_invalid_hex_color_is_invalid(self):
+        serializer = BoardSerializer(data={'title': 'Board', 'color': 'not-a-color'})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('color', serializer.errors)
+
+    def test_hex_color_without_hash_is_invalid(self):
+        serializer = BoardSerializer(data={'title': 'Board', 'color': 'FF0000'})
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('color', serializer.errors)
+
+    def test_lowercase_color_is_uppercased(self):
+        serializer = BoardSerializer(data={'title': 'Board', 'color': '#ff0000'})
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        self.assertEqual(serializer.validated_data['color'], '#FF0000')
+
 
 class BoardDetailSerializerTest(TestCase):
     def setUp(self):
