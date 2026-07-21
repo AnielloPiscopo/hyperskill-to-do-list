@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
+from django.conf import settings
+from django.test import override_settings
 
 
 class RegisterViewTest(APITestCase):
@@ -57,3 +59,23 @@ class RegisterViewTest(APITestCase):
         response = self.client.post(self.url, self.valid_data)
         self.assertNotIn('password', response.data)
         self.assertNotIn('confirm_password', response.data)
+
+    @override_settings(REST_FRAMEWORK={
+        **settings.REST_FRAMEWORK,
+        'DEFAULT_THROTTLE_RATES': {'login': '2/minute'}
+    })
+    def test_register_rate_limit_returns_429(self):
+        for _ in range(2):
+            self.client.post(self.url, {
+                'username': f'user{_}',
+                'email': f'user{_}@example.com',
+                'password': 'securepassword123',
+                'confirm_password': 'securepassword123',
+            })
+        response = self.client.post(self.url, {
+            'username': 'user3',
+            'email': 'user3@example.com',
+            'password': 'securepassword123',
+            'confirm_password': 'securepassword123',
+        })
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)

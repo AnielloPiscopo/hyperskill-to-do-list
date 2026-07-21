@@ -2,6 +2,8 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
+from django.conf import settings
+from django.test import override_settings
 
 
 class LoginViewTest(APITestCase):
@@ -45,3 +47,13 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, {'username': 'testuser', 'password': 'wrong'})
         self.assertIn('detail', response.data)
         self.assertEqual(response.data['detail'], 'Invalid credentials.')
+
+    @override_settings(REST_FRAMEWORK={
+        **settings.REST_FRAMEWORK,
+        'DEFAULT_THROTTLE_RATES': {'login': '2/minute'}
+    })
+    def test_login_rate_limit_returns_429(self):
+        for _ in range(2):
+            self.client.post(self.url, {'username': 'testuser', 'password': 'testpass123'})
+        response = self.client.post(self.url, {'username': 'testuser', 'password': 'testpass123'})
+        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
