@@ -19,7 +19,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         help_text='Repeat the new password to confirm'
     )
 
-def validate(self, data):
-    if data['new_password'] != data['confirm_new_password']:
-        raise serializers.ValidationError('Passwords must match.')
-    return data
+    def validate(self, data):
+        if data['new_password'] != data['confirm_new_password']:
+            raise serializers.ValidationError('Passwords must match.')
+        return data
