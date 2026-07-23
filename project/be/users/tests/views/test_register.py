@@ -1,8 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from django.conf import settings
-from django.test import override_settings
+from django.core.cache import cache
 
 
 class RegisterViewTest(APITestCase):
@@ -60,22 +59,25 @@ class RegisterViewTest(APITestCase):
         self.assertNotIn('password', response.data)
         self.assertNotIn('confirm_password', response.data)
 
-    @override_settings(REST_FRAMEWORK={
-        **settings.REST_FRAMEWORK,
-        'DEFAULT_THROTTLE_RATES': {'login': '2/minute'}
-    })
     def test_register_rate_limit_returns_429(self):
-        for _ in range(2):
-            self.client.post(self.url, {
-                'username': f'user{_}',
-                'email': f'user{_}@example.com',
+        from core.throttling import LoginRateThrottle
+        LoginRateThrottle.THROTTLE_RATES = {'login': '2/minute'}
+        cache.clear()
+        try:
+            for _ in range(2):
+                self.client.post(self.url, {
+                    'username': f'user{_}',
+                    'email': f'user{_}@example.com',
+                    'password': 'securepassword123',
+                    'confirm_password': 'securepassword123',
+                })
+            response = self.client.post(self.url, {
+                'username': 'user3',
+                'email': 'user3@example.com',
                 'password': 'securepassword123',
                 'confirm_password': 'securepassword123',
             })
-        response = self.client.post(self.url, {
-            'username': 'user3',
-            'email': 'user3@example.com',
-            'password': 'securepassword123',
-            'confirm_password': 'securepassword123',
-        })
-        self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+            self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        finally:
+            del LoginRateThrottle.THROTTLE_RATES
+            cache.clear()
