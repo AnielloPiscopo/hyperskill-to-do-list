@@ -5,12 +5,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth import authenticate
+from core.throttling import LoginRateThrottle
 
 __all__ = ['LoginView']
 
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [LoginRateThrottle]
 
     @extend_schema(
         summary='Login',
@@ -29,6 +31,7 @@ class LoginView(APIView):
         responses={
             200: OpenApiResponse(description='Token returned successfully.'),
             400: OpenApiResponse(description='Invalid credentials.'),
+            429: OpenApiResponse(description='Too many requests — rate limit exceeded.'),
         }
     )
     def post(self, request):

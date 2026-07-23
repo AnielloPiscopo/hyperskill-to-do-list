@@ -2,6 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
+from django.core.cache import cache
 
 
 class LoginViewTest(APITestCase):
@@ -45,3 +46,16 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, {'username': 'testuser', 'password': 'wrong'})
         self.assertIn('detail', response.data)
         self.assertEqual(response.data['detail'], 'Invalid credentials.')
+
+    def test_login_rate_limit_returns_429(self):
+        from core.throttling import LoginRateThrottle
+        LoginRateThrottle.THROTTLE_RATES = {'login': '2/minute'}
+        cache.clear()
+        try:
+            for _ in range(2):
+                self.client.post(self.url, {'username': 'testuser', 'password': 'testpass123'})
+            response = self.client.post(self.url, {'username': 'testuser', 'password': 'testpass123'})
+            self.assertEqual(response.status_code, status.HTTP_429_TOO_MANY_REQUESTS)
+        finally:
+            del LoginRateThrottle.THROTTLE_RATES
+            cache.clear()
