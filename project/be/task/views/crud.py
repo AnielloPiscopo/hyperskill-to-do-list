@@ -63,7 +63,8 @@ class TaskListView(generics.ListCreateAPIView):
                 models.When(priority=TaskPriority.ZERO, status=TaskStatus.IN_PROGRESS, then=models.Value(6)),
                 models.When(priority=TaskPriority.ZERO, status=TaskStatus.TODO, then=models.Value(7)),
                 output_field=models.IntegerField()
-            ))
+            )
+        ).order_by('order')
 
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)
