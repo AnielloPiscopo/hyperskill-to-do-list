@@ -7,7 +7,7 @@ from rest_framework import serializers
 
 from board.models import Board
 from core.serializers import BaseModelSerializer
-from task.enums import TaskStatus
+from task.enums import TaskStatus, TaskPriority
 from task.models import Task
 from task.serializers import TaskSerializer
 
@@ -72,7 +72,7 @@ class TaskSerializerTest(TestCase):
         self.assertSetEqual(
             set(serializer.data.keys()),
             {'id', 'title', 'description', 'goal_set_date', 'set_to_complete',
-             'status', 'board', 'updated_at', 'created_at'}
+             'status', 'priority', 'board', 'updated_at', 'created_at'}
         )
 
     def test_serializes_title(self):
@@ -94,6 +94,10 @@ class TaskSerializerTest(TestCase):
     def test_default_status_is_todo(self):
         serializer = TaskSerializer(self.task)
         self.assertEqual(serializer.data['status'], TaskStatus.TODO)
+
+    def test_default_priority_is_zero(self):
+        serializer = TaskSerializer(self.task)
+        self.assertEqual(serializer.data['priority'], TaskPriority.ZERO)
 
     # --- validation ---
 
@@ -146,6 +150,12 @@ class TaskSerializerTest(TestCase):
         serializer = TaskSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('status', serializer.errors)
+
+    def test_invalid_priority_is_invalid(self):
+        data = {**self.valid_data, 'priority': 99}
+        serializer = TaskSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('priority', serializer.errors)
 
     def test_invalid_date_format_is_invalid(self):
         data = {**self.valid_data, 'goal_set_date': 'not-a-date'}
@@ -205,6 +215,24 @@ class TaskSerializerTest(TestCase):
         serializer = TaskSerializer(context={'request': request})
         with self.assertRaises(serializers.ValidationError):
             serializer.validate_board(board)
+
+    # --- validate (_check_priority_and_status) ---
+
+    def test_non_zero_priority_with_done_status_is_invalid(self):
+        data = {**self.valid_data, 'status': TaskStatus.DONE, 'priority': TaskPriority.HIGH}
+        serializer = TaskSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('priority', serializer.errors)
+
+    def test_zero_priority_with_done_status_is_valid(self):
+        data = {**self.valid_data, 'status': TaskStatus.DONE, 'priority': TaskPriority.ZERO}
+        serializer = TaskSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+    def test_non_zero_priority_with_non_done_status_is_valid(self):
+        data = {**self.valid_data, 'status': TaskStatus.TODO, 'priority': TaskPriority.HIGH}
+        serializer = TaskSerializer(data=data)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
 
     # --- save ---
 
