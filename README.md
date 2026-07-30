@@ -1,17 +1,22 @@
 # TO-do List API
 
-A TODO List REST API built with Django and Django REST Framework, developed as part of a HyperSkill project. The API allows users to manage tasks with full CRUD functionality, authentication, and auto-generated documentation.
+A TODO List REST API built with Django and Django REST Framework, developed as part of a HyperSkill project. The API allows users to organize tasks into boards, manage their lifecycle (including soft delete with cascade archiving), and explore the API through auto-generated documentation.
 
 ---
 
 ## Features
 
 - **Task management** — create, read, update, and delete tasks
-- **Authentication** — session-based authentication with login/logout
-- **Permissions** — only the task author can update or delete their tasks
-- **User registration** — new users can register via a dedicated endpoint
-- **API documentation** — auto-generated Swagger UI via `drf-yasg`
-- **SSR views** — server-side rendered list and detail views for tasks
+- **Board management** — group tasks into boards, with full CRUD
+- **Soft delete** — archive and restore both tasks and boards instead of permanently deleting them
+- **Cascade archiving** — archiving a board archives all of its tasks; restoring a board can optionally restore its tasks too
+- **Bulk operations** — archive or restore multiple tasks/boards at once (all or a specific list of ids)
+- **Authentication** — token-based authentication with login and registration endpoints
+- **Permissions** — only the author of a task or board can update, delete, archive, or restore it
+- **Filtering, search & ordering** — filter tasks by status/board, search by title/description, order by multiple fields
+- **Pagination** — consistent page-based pagination across list endpoints
+- **API documentation** — auto-generated Swagger UI via `drf-spectacular`
+- **Containerized environment** — PostgreSQL via Docker Compose for development
 
 ---
 
@@ -20,8 +25,10 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 - Python 3.14
 - Django 6.0
 - Django REST Framework
-- drf-yasg (Swagger documentation)
-- SQLite (development)
+- drf-spectacular (OpenAPI 3 / Swagger documentation)
+- PostgreSQL (development, via Docker)
+- SQLite (tests)
+- Docker / Docker Compose
 
 ---
 
@@ -30,6 +37,7 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 ### Prerequisites
 
 - Python 3.12+
+- Docker & Docker Compose
 - pip
 
 ### Steps
@@ -37,7 +45,7 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 ```bash
 # Clone the repository
 git clone https://github.com/AnielloPiscopo/hyperskill-to-do-list.git
-cd hyperskill-to-do-list
+cd hyperskill-to-do-list/project/be
 
 # Create and activate a virtual environment
 python -m venv .venv
@@ -46,108 +54,220 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
+# Start the PostgreSQL container
+docker compose up -d
+
 # Apply migrations
-python manage.py migrate
+docker compose exec web python manage.py migrate
 
 # Create a superuser
-python manage.py createsuperuser
-
-# Run the development server
-python manage.py runserver
+docker compose exec web python manage.py createsuperuser
 ```
+
+The API will be available at `http://localhost:8000/`, with Swagger UI served at the root path.
 
 ---
 
 ## API Endpoints
 
-### Tasks
-
-| Method | Endpoint | Description | Auth required |
-|--------|----------|-------------|---------------|
-| GET | `/api/tasks/` | List all tasks | ✅ |
-| POST | `/api/tasks/` | Create a new task | ✅ |
-| GET | `/api/tasks/<id>/` | Retrieve a task | ✅ |
-| PUT | `/api/tasks/<id>/` | Update a task | ✅ Author only |
-| PATCH | `/api/tasks/<id>/` | Partially update a task | ✅ Author only |
-| DELETE | `/api/tasks/<id>/` | Delete a task | ✅ Author only |
-
 ### Authentication
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET/POST | `/api-auth/login/` | Login |
-| GET | `/api-auth/logout/` | Logout |
-| POST | `/register/` | Register a new user |
+| Method | Endpoint              | Description               | Auth required |
+|--------|------------------------|----------------------------|----------------|
+| POST   | `/auth/register/`     | Register a new user        | ❌             |
+| POST   | `/auth/login/`        | Log in and obtain a token  | ❌             |
 
-### SSR Views
+### Boards
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/todo/` | List all tasks (HTML) |
-| GET | `/todo/<id>/` | Task detail (HTML) |
+| Method | Endpoint                     | Description                                  | Auth required     |
+|--------|-------------------------------|-----------------------------------------------|--------------------|
+| GET    | `/boards/`                   | List all boards                               | ✅                 |
+| POST   | `/boards/`                   | Create a new board                            | ✅                 |
+| GET    | `/boards/<id>/`               | Retrieve a board, including its active tasks  | ✅ Author only     |
+| PUT    | `/boards/<id>/`               | Fully update a board                          | ✅ Author only     |
+| PATCH  | `/boards/<id>/`               | Partially update a board                      | ✅ Author only     |
+| DELETE | `/boards/<id>/`               | Permanently delete a board                    | ✅ Author only     |
+| POST   | `/boards/archive-all/`        | Archive all boards, or a subset by ids        | ✅                 |
+| POST   | `/boards/restore-all/`        | Restore all boards, or a subset by ids        | ✅                 |
+| POST   | `/boards/<id>/archive/`       | Archive a board and cascade-archive its tasks | ✅ Author only     |
+| POST   | `/boards/<id>/restore/`       | Restore a board (optionally its tasks too)    | ✅ Author only     |
+
+`restore-all` and `restore` accept an optional `?restore_tasks=true` query parameter to also restore the tasks associated with the restored board(s).
+
+### Tasks
+
+| Method | Endpoint                    | Description                              | Auth required     |
+|--------|-------------------------------|--------------------------------------------|--------------------|
+| GET    | `/tasks/`                    | List all tasks (filter/search/order)        | ✅                 |
+| POST   | `/tasks/`                    | Create a new task                          | ✅                 |
+| GET    | `/tasks/<id>/`                | Retrieve a task                            | ✅ Author only     |
+| PUT    | `/tasks/<id>/`                | Fully update a task                        | ✅ Author only     |
+| PATCH  | `/tasks/<id>/`                | Partially update a task                    | ✅ Author only     |
+| DELETE | `/tasks/<id>/`                | Permanently delete a task                  | ✅ Author only     |
+| POST   | `/tasks/archive-all/`         | Archive all tasks, or a subset by ids      | ✅                 |
+| POST   | `/tasks/restore-all/`         | Restore all tasks, or a subset by ids      | ✅                 |
+| POST   | `/tasks/<id>/archive/`        | Archive a task                             | ✅ Author only     |
+| POST   | `/tasks/<id>/restore/`        | Restore a task                             | ✅ Author only     |
+
+**Filtering / search / ordering** on `GET /tasks/`:
+- `?status=` and `?board=` — filter by task status or board
+- `?search=` — search by title or description
+- `?ordering=` — order by `set_to_complete`, `status`, or `created_at`
 
 ### Documentation
 
-| Endpoint | Description |
-|----------|-------------|
-| `/` | Swagger UI |
+| Endpoint        | Description    |
+|-------------------|------------------|
+| `/`                | Swagger UI       |
+| `/api/schema/`     | Raw OpenAPI schema |
 
 ---
 
-## Task Model
+## Models
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | Integer | Auto-generated |
-| `task` | CharField (max 50) | Task title |
-| `description` | CharField (max 1024) | Task description |
-| `goal_set_date` | DateTimeField | Date the task was created |
-| `set_to_complete` | DateTimeField | Deadline |
-| `is_completed` | BooleanField | Completion status |
-| `todo_of` | ForeignKey (User) | Task author |
+### Task
+
+| Field             | Type                          | Description                            |
+|--------------------|-------------------------------|------------------------------------------|
+| `id`               | AutoField                    | Auto-generated                          |
+| `title`            | CharField (max 50)            | Task title                              |
+| `description`      | TextField (max 1024)          | Task description                        |
+| `goal_set_date`    | DateField                    | Date the task was created                |
+| `set_to_complete`  | DateField                    | Deadline                                |
+| `status`           | CharField (enum)              | `IN_PROGRESS`, `TODO`, or `DONE`         |
+| `user`             | ForeignKey (User)              | Task author                             |
+| `board`            | ForeignKey (Board, nullable)    | Board the task belongs to                |
+| `is_archived`      | BooleanField                  | Soft-delete flag (inherited from `BaseModel`) |
+| `created_at` / `updated_at` | DateTimeField        | Timestamps (inherited from `BaseModel`)  |
+
+### Board
+
+| Field             | Type                  | Description                  |
+|--------------------|------------------------|---------------------------------|
+| `id`               | AutoField              | Auto-generated                |
+| `title`            | CharField (max 100)     | Board title                   |
+| `description`      | TextField (max 2048)    | Board description              |
+| `color`            | CharField (#HEX)        | Display color                 |
+| `user`             | ForeignKey (User)        | Board author                  |
+| `is_archived`      | BooleanField            | Soft-delete flag (inherited from `BaseModel`) |
+| `created_at` / `updated_at` | DateTimeField | Timestamps (inherited from `BaseModel`) |
+
+### BaseModel (`core`)
+
+An abstract base model shared by both `Task` and `Board`, providing `is_archived`, `created_at`, `updated_at`, and the `archive()` / `restore()` methods used for soft delete.
 
 ---
 
 ## Permissions
 
-- **Unauthenticated users** → `403 Forbidden` on all API endpoints
-- **Authenticated users** → can view all tasks and create new ones
-- **Task author** → can update and delete their own tasks
+- **Unauthenticated users** → `401 Unauthorized` on all API endpoints except registration and login
+- **Authenticated users** → can view their own tasks/boards and create new ones
+- **Author only** → can update, delete, archive, or restore their own tasks/boards (`IsAuthorOrReadOnly`)
+- All list/detail querysets are scoped to `user=request.user` and `is_archived=False`, so archived items are automatically excluded from regular results
+
+---
+
+## Soft Delete & Cascade Logic
+
+Rather than permanently deleting tasks and boards, the API supports archiving:
+
+- **Archiving a task** marks it as `is_archived=True`. It disappears from `GET /tasks/` but isn't deleted.
+- **Archiving a board** archives the board *and* cascades the archive to all of its active tasks.
+- **Restoring a board** restores the board itself. Tasks stay archived unless `?restore_tasks=true` is passed, in which case all of the board's archived tasks are restored too.
+- **Bulk endpoints** (`archive-all` / `restore-all`) accept an optional `ids` list in the request body. If `ids` is omitted or empty, the operation applies to all of the user's tasks/boards.
+
+The archive/restore logic lives in dedicated service modules (`task/services`, `board/services`) rather than in the views, keeping the views focused on request/response handling and permission checks.
 
 ---
 
 ## Project Structure
 
 ```
-project/
-├── django_to_do_list/     ← main project
+project/be/
+├── django_to_do_list/
 │   ├── settings/
-│   │   ├── __init__.py
 │   │   ├── base.py
 │   │   ├── local.py
 │   │   ├── auth.py
-│   │   ├── drf.py
-│   │   └── allauth.py
+│   │   └── drf.py
 │   └── urls.py
-├── todo/                  ← main app
+├── core/                      ← shared base model, permissions
+│   ├── models/
+│   │   └── base.py
+│   └── tests/
+├── users/                     ← registration & login
+│   ├── serializers/
+│   │   └── register.py
+│   └── views/
+│       ├── login.py
+│       └── register.py
+├── board/
+│   ├── models/
+│   │   └── board.py
+│   ├── serializers/
+│   │   └── board.py
+│   ├── services/
+│   │   └── soft_delete.py
 │   ├── views/
-│   │   ├── ssr.py         ← HTML views
-│   │   └── api.py         ← API views
-│   ├── models.py
-│   ├── serializers.py
-│   ├── permissions.py
-│   └── urls.py
+│   │   ├── crud.py
+│   │   └── soft_delete.py
+│   └── tests/
+├── task/
+│   ├── enums/
+│   │   └── task_status.py
+│   ├── models/
+│   │   └── task.py
+│   ├── serializers/
+│   │   └── task.py
+│   ├── services/
+│   │   └── soft_delete.py
+│   ├── views/
+│   │   ├── crud.py
+│   │   └── soft_delete.py
+│   └── tests/
 └── manage.py
+```
+
+---
+
+## Running Tests
+
+```bash
+# All tests
+python manage.py test
+
+# A specific app
+python manage.py test task
+python manage.py test board
+
+# With Docker
+docker compose exec web python manage.py test
+
+# With coverage
+docker compose exec web coverage run --source='.' manage.py test
+docker compose exec web coverage report
+docker compose exec web coverage html
 ```
 
 ---
 
 ## Development Stages
 
-This project was developed in 5 stages as part of a HyperSkill course:
+This project was originally developed in 5 stages as part of a HyperSkill course, and has since evolved beyond that scope with additional features built independently:
 
-- **Stage 1** — Basic Django SSR page with Todo model and list/detail views
+- **Stage 1** — Basic Django SSR page with a Todo model and list/detail views
 - **Stage 2** — REST API with `GET /api/tasks/` and `GET /api/tasks/<id>/`
 - **Stage 3** — Full CRUD + authentication and permissions
 - **Stage 4** — User registration
 - **Stage 5** — API documentation with Swagger UI via `drf-yasg`
+
+### Post-HyperSkill improvements
+
+- Renamed the `Todo` model/app to `Task`, replacing the boolean `is_completed` field with a `status` enum (`IN_PROGRESS`, `TODO`, `DONE`)
+- Removed server-side rendered (SSR) views in favor of a pure API
+- Introduced the `Board` model to group tasks, with its own CRUD endpoints
+- Added a shared `BaseModel` in `core` (`is_archived`, `created_at`, `updated_at`) and the `IsAuthorOrReadOnly` permission
+- Migrated the development database from SQLite to PostgreSQL, running via Docker Compose
+- Implemented soft delete (archive/restore) for tasks and boards, including cascade archiving from boards to their tasks
+- Added bulk archive/restore endpoints supporting both "all" and id-based operations
+- Migrated API documentation from `drf-yasg` to `drf-spectacular` (OpenAPI 3) and added token-based login alongside registration
