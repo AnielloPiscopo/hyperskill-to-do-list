@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from core.models import BaseModel
-from task.enums import TaskStatus
+from task.enums import TaskStatus, TaskPriority
 
 __all__ = ['Task']
 
@@ -22,11 +22,15 @@ class Task(BaseModel):
     set_to_complete = models.DateField(
         help_text='Deadline for the task (YYYY-MM-DD)'
     )
-    status = models.CharField(
-        max_length=20,
+    status = models.IntegerField(
         choices=TaskStatus.choices,
         default=TaskStatus.TODO,
         help_text='Status of the task'
+    )
+    priority = models.IntegerField(
+        choices=TaskPriority.choices,
+        default=TaskPriority.ZERO,
+        help_text='Priority of the task'
     )
     user = models.ForeignKey(
         User,
@@ -45,4 +49,5 @@ class Task(BaseModel):
         return self.title
 
     def __repr__(self) -> str:
-        return f'Task(id={self.id!r}, title={self.title!r}, description={self.description!r}, status={self.status!r})'
+        return (f'Task(id={self.id!r}, title={self.title!r}, description={self.description!r}, '
+                f'status={self.status!r}), priority={self.priority!r}')
