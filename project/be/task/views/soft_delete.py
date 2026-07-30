@@ -1,4 +1,5 @@
 from rest_framework import status
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -26,8 +27,8 @@ class TaskArchiveView(APIView):
             404: task_responses.RESPONSE_404,
         }
     )
-    def post(self, request, pk):
-        task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=False)
+    def post(self, request: Request, pk: int) -> Response:
+        task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=False)
         self.check_object_permissions(request, task)
         archive_task(task)
         return Response({'detail': 'Task archived.'}, status=status.HTTP_200_OK)
@@ -46,8 +47,8 @@ class TaskRestoreView(APIView):
             404: task_responses.RESPONSE_404,
         }
     )
-    def post(self, request, pk):
-        task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=True)
+    def post(self, request: Request, pk: int) -> Response:
+        task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, task)
         restore_task(task)
         return Response({'detail': 'Task restored.'}, status=status.HTTP_200_OK)
@@ -78,8 +79,8 @@ class TaskArchiveAllView(APIView):
             403: core_responses.RESPONSE_403,
         }
     )
-    def post(self, request):
-        ids = request.data.get('ids')
+    def post(self, request: Request) -> Response:
+        ids: list[int] | None = request.data.get('ids')
         archive_tasks(user=request.user, ids=ids if ids else None)
         return Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
 
@@ -110,7 +111,7 @@ class TaskRestoreAllView(APIView):
             403: core_responses.RESPONSE_403,
         }
     )
-    def post(self, request):
-        ids = request.data.get('ids')
+    def post(self, request: Request) -> Response:
+        ids: list[int] | None = request.data.get('ids')
         restore_tasks(user=request.user, ids=ids if ids else None)
         return Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)

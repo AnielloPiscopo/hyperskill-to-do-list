@@ -15,7 +15,7 @@ def _soft_delete_all(qs: QuerySet[Board], ids: Optional[list[int]] = None,
         archive_board(board) if archive else restore_board(board, restore_tasks=restore_tasks)
 
 
-def archive_board(board: Board):
+def archive_board(board: Board) -> None:
     board.archive()
     board.tasks.update(is_archived=True)
 

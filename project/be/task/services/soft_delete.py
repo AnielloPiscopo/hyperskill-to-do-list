@@ -12,10 +12,10 @@ def _soft_delete_all(qs: QuerySet[Task], ids: Optional[list] = None, archive: bo
     for task in qs:
         archive_task(task) if archive else restore_task(task)
 
-def archive_task(task: Task):
+def archive_task(task: Task) -> None:
     task.archive()
 
-def restore_task(task: Task):
+def restore_task(task: Task) -> None:
     task.restore()
 
 def archive_tasks(user: User, ids: Optional[list] = None) -> None:
