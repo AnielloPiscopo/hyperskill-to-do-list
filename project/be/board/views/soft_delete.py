@@ -1,9 +1,10 @@
 from rest_framework import status
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
-from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiTypes
 from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
@@ -27,8 +28,8 @@ class BoardArchiveView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request, pk):
-        board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=False)
+    def post(self, request: Request, pk: int) -> Response:
+        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=False)
         self.check_object_permissions(request, board)
         archive_board(board)
         return Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
@@ -56,10 +57,10 @@ class BoardRestoreView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request, pk):
-        board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
+    def post(self, request: Request, pk: int):
+        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, board)
-        restore_tasks = request.query_params.get('restore_tasks') == 'true'
+        restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_board(board, restore_tasks=restore_tasks)
         return Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
 
@@ -89,8 +90,8 @@ class BoardArchiveAllView(APIView):
             403: core_responses.RESPONSE_403,
         }
     )
-    def post(self, request):
-        ids = request.data.get('ids')
+    def post(self, request: Request) -> Response:
+        ids: list[int] | None = request.data.get('ids')
         archive_boards(user=request.user, ids=ids if ids is not None and len(ids) > 0 else None)
         return Response({'detail': 'Boards archived.'}, status=status.HTTP_200_OK)
 
@@ -129,9 +130,9 @@ class BoardRestoreAllView(APIView):
             403: core_responses.RESPONSE_403,
         }
     )
-    def post(self, request):
-        ids = request.data.get('ids')
-        restore_tasks = request.query_params.get('restore_tasks') == 'true'
+    def post(self, request: Request) -> Response:
+        ids: list[int] | None = request.data.get('ids')
+        restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_boards(user=request.user, ids=ids if ids is not None and len(ids) > 0 else None,
                        restore_tasks=restore_tasks)
         return Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)

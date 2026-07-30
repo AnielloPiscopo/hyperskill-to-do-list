@@ -3,6 +3,9 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.request import Request
+from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
 from board.constants.api import payloads, responses as board_responses
@@ -30,7 +33,7 @@ class BoardListView(generics.ListCreateAPIView):
             403: core_responses.RESPONSE_403
         }
     )
-    def get(self, request, *args, **kwargs):
+    def get(self, request: Request, *args, **kwargs) -> Response:
         return super().get(request, *args, **kwargs)
 
     @extend_schema(
@@ -44,13 +47,13 @@ class BoardListView(generics.ListCreateAPIView):
             403: core_responses.RESPONSE_403,
         }
     )
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
 
-    def get_queryset(self) -> models.QuerySet:
+    def get_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False).order_by('title')
 
-    def perform_create(self, serializer) -> None:
+    def perform_create(self, serializer: BaseSerializer) -> None:
         serializer.save(user=self.request.user)
 
 
@@ -73,7 +76,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def get(self, request, *args, **kwargs):
+    def get(self, request: Request, *args, **kwargs) -> Response:
         return super().get(request, *args, **kwargs)
 
     @extend_schema(
@@ -88,7 +91,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             404: OpenApiResponse(description='Board not found.'),
         }
     )
-    def put(self, request, *args, **kwargs):
+    def put(self, request: Request, *args, **kwargs) -> Response:
         return super().put(request, *args, **kwargs)
 
     @extend_schema(
@@ -103,7 +106,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def patch(self, request, *args, **kwargs):
+    def patch(self, request: Request, *args, **kwargs) -> Response:
         return super().patch(request, *args, **kwargs)
 
     @extend_schema(
@@ -116,8 +119,8 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def delete(self, request, *args, **kwargs):
+    def delete(self, request: Request, *args, **kwargs) -> Response:
         return super().delete(request, *args, **kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False)
