@@ -2,6 +2,8 @@
 
 A TODO List REST API built with Django and Django REST Framework, developed as part of a HyperSkill project. The API allows users to organize tasks into boards, manage their lifecycle (including soft delete with cascade archiving), and explore the API through auto-generated documentation.
 
+This repository contains the backend (`project/be`). A frontend (`project/fe`) may be added in the future.
+
 ---
 
 ## Features
@@ -32,6 +34,20 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 - PostgreSQL (development, via Docker)
 - SQLite (tests)
 - Docker / Docker Compose
+
+---
+
+## Repository Structure
+
+```
+hyperskill-to-do-list/
+├── project/
+│   ├── be/       ← Django REST API (this document)
+│   └── fe/       ← Frontend (planned)
+├── tasks/        ← HyperSkill course task files
+├── .gitignore
+└── README.md
+```
 
 ---
 
@@ -116,7 +132,7 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 | POST   | `/tasks/<id>/restore/`        | Restore a task                             | ✅ Author only     |
 
 **Filtering / search / ordering** on `GET /tasks/`:
-- `?status=` , `?priority=` and `?board=` — filter by task status, priority or board
+- `?status=`, `?priority=` and `?board=` — filter by task status, priority or board
 - `?search=` — search by title or description
 - `?ordering=` — order by `set_to_complete`, `status`, `priority` or `created_at`
 
@@ -179,14 +195,14 @@ An abstract base model shared by both `Task` and `Board`, providing `is_archived
 Tasks are automatically ordered by priority and status using the following logic:
 
 ```
-HIGH priority + IN_PROGRESS
-HIGH priority + TODO
+HIGH priority   + IN_PROGRESS
+HIGH priority   + TODO
 MEDIUM priority + IN_PROGRESS
 MEDIUM priority + TODO
-LOW priority + IN_PROGRESS
-LOW priority + TODO
-No priority + IN_PROGRESS
-No priority + TODO
+LOW priority    + IN_PROGRESS
+LOW priority    + TODO
+No priority     + IN_PROGRESS
+No priority     + TODO
 DONE (regardless of priority)
 ```
 
@@ -207,7 +223,7 @@ The archive/restore logic lives in dedicated service modules (`task/services`, `
 
 ---
 
-## Project Structure
+## Backend Structure
 
 ```
 project/be/
