@@ -1,5 +1,5 @@
-from django.db.models import QuerySet
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.db import models
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -9,6 +9,7 @@ from core.permissions import IsAuthorOrReadOnly
 from task.constants.api import payloads, responses as task_responses
 from task.models import Task
 from task.serializers import TaskSerializer
+from task.enums import TaskStatus, TaskPriority
 
 __all__ = ['TaskDetailView', 'TaskListView']
 
@@ -18,9 +19,9 @@ class TaskListView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_fields = ['status', 'board']
+    filterset_fields = ['status', 'priority', 'board']
     search_fields = ['title', 'description']
-    ordering_fields = ['set_to_complete', 'status', 'created_at']
+    ordering_fields = ['set_to_complete', 'status', 'priority', 'created_at']
 
     @extend_schema(
         summary='List all tasks',
@@ -49,8 +50,21 @@ class TaskListView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    def get_queryset(self) -> QuerySet:
-        return Task.objects.filter(user=self.request.user, is_archived=False).order_by('set_to_complete', 'status')
+    def get_queryset(self) -> models.QuerySet:
+        return Task.objects.filter(user=self.request.user, is_archived=False).annotate(
+            order=models.Case(
+                models.When(status=TaskStatus.DONE, then=models.Value(100)),
+                models.When(priority=TaskPriority.HIGH, status=TaskStatus.IN_PROGRESS, then=models.Value(0)),
+                models.When(priority=TaskPriority.HIGH, status=TaskStatus.TODO, then=models.Value(1)),
+                models.When(priority=TaskPriority.MEDIUM, status=TaskStatus.IN_PROGRESS, then=models.Value(2)),
+                models.When(priority=TaskPriority.MEDIUM, status=TaskStatus.TODO, then=models.Value(3)),
+                models.When(priority=TaskPriority.LOW, status=TaskStatus.IN_PROGRESS, then=models.Value(4)),
+                models.When(priority=TaskPriority.LOW, status=TaskStatus.TODO, then=models.Value(5)),
+                models.When(priority=TaskPriority.ZERO, status=TaskStatus.IN_PROGRESS, then=models.Value(6)),
+                models.When(priority=TaskPriority.ZERO, status=TaskStatus.TODO, then=models.Value(7)),
+                output_field=models.IntegerField()
+            )
+        ).order_by('order')
 
     def perform_create(self, serializer) -> None:
         serializer.save(user=self.request.user)

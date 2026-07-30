@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from task.enums import TaskStatus
+from task.enums import TaskStatus, TaskPriority
 from task.models import Task
 
 
@@ -26,6 +26,9 @@ class TaskModelTest(TestCase):
 
     def test_default_status_is_todo(self):
         self.assertEqual(self.task.status, TaskStatus.TODO)
+
+    def test_default_priority_is_zero(self):
+        self.assertEqual(self.task.priority, TaskPriority.ZERO)
 
     def test_todo_fields(self):
         self.assertEqual(self.task.title, 'Test task')
@@ -53,5 +56,5 @@ class TaskModelTest(TestCase):
 
     def test_repr_contains_id_task_and_status(self):
         expected = (f'Task(id={self.task.id!r}, title={self.task.title!r}, description={self.task.description!r}, '
-                    f'status={self.task.status!r})')
+                    f'status={self.task.status!r}), priority={self.task.priority!r}')
         self.assertEqual(repr(self.task), expected)

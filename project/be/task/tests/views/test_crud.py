@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from task.enums import TaskStatus
+from task.enums import TaskStatus, TaskPriority
 from task.models import Task
 
 from board.models import Board
@@ -124,6 +124,28 @@ class TodoListViewTest(APITestCase):
         self.assertEqual(response.data['count'], 1)
         self.assertEqual(response.data['results'][0]['title'], 'Todo task')
 
+    def test_filter_by_priority(self):
+        Task.objects.create(
+            title='High priority task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.HIGH,
+            user=self.user
+        )
+        Task.objects.create(
+            title='Low priority task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.LOW,
+            user=self.user
+        )
+        response = self.client.get(self.url, {'priority': TaskPriority.HIGH})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'High priority task')
+
     def test_filter_by_board(self):
         board = Board.objects.create(title='Board 1', user=self.user)
         Task.objects.create(
@@ -207,6 +229,57 @@ class TodoListViewTest(APITestCase):
         self.assertEqual(response.data['results'][1]['title'], 'Later task')
 
 
+    def test_default_ordering_high_priority_before_low_priority(self):
+        Task.objects.create(
+            title='Low priority task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.LOW,
+            status=TaskStatus.TODO,
+            user=self.user
+        )
+        Task.objects.create(
+            title='High priority task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.HIGH,
+            status=TaskStatus.TODO,
+            user=self.user
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
+        self.assertEqual(results[0]['title'], 'High priority task')
+        self.assertEqual(results[1]['title'], 'Low priority task')
+
+    def test_default_ordering_done_tasks_last(self):
+        Task.objects.create(
+            title='Done task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.HIGH,
+            status=TaskStatus.DONE,
+            user=self.user
+        )
+        Task.objects.create(
+            title='In progress task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            priority=TaskPriority.ZERO,
+            status=TaskStatus.IN_PROGRESS,
+            user=self.user
+        )
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.data['results']
+        self.assertEqual(results[0]['title'], 'In progress task')
+        self.assertEqual(results[1]['title'], 'Done task')
+
+
 class TodoDetailViewTest(APITestCase):
     client: APIClient
 
@@ -252,7 +325,7 @@ class TodoDetailViewTest(APITestCase):
         response = self.client.patch(self.url, {'status': TaskStatus.DONE})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.todo.refresh_from_db()
-        self.assertEqual(self.todo.status, str(TaskStatus.DONE))
+        self.assertEqual(self.todo.status, TaskStatus.DONE)
 
     def test_delete_todo_as_author(self):
         response = self.client.delete(self.url)

@@ -1,4 +1,4 @@
-from django.db.models import QuerySet
+from django.db import models
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -47,7 +47,7 @@ class BoardListView(generics.ListCreateAPIView):
     def post(self, request, *args, **kwargs):
         return super().post(request, *args, **kwargs)
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> models.QuerySet:
         return Board.objects.filter(user=self.request.user, is_archived=False).order_by('title')
 
     def perform_create(self, serializer) -> None:
