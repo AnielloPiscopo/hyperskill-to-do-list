@@ -9,6 +9,7 @@ from rest_framework.serializers import BaseSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
+from core.mixins import UserScopedQuerysetMixin
 from task.constants.api import payloads, responses as task_responses
 from task.models import Task
 from task.serializers import TaskSerializer
@@ -17,7 +18,7 @@ from task.enums import TaskStatus, TaskPriority
 __all__ = ['TaskDetailView', 'TaskListView']
 
 
-class TaskListView(generics.ListCreateAPIView):
+class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
@@ -31,6 +32,7 @@ class TaskListView(generics.ListCreateAPIView):
         description='Returns all tasks ordered by completion status, deadline and creation date.',
         tags=['tasks'],
         examples=[payloads.TASK_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: TaskSerializer(many=True),
             403: core_responses.RESPONSE_403,
@@ -44,6 +46,7 @@ class TaskListView(generics.ListCreateAPIView):
         description='Creates a new task. The author is automatically set to the logged in user.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             201: TaskSerializer,
             400: core_responses.RESPONSE_400,
@@ -53,7 +56,7 @@ class TaskListView(generics.ListCreateAPIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
 
-    def get_queryset(self) -> models.QuerySet[Task]:
+    def get_user_queryset(self) -> models.QuerySet[Task]:
         return Task.objects.filter(user=self.request.user, is_archived=False).annotate(
             order=models.Case(
                 models.When(status=TaskStatus.DONE, then=models.Value(100)),
@@ -73,7 +76,7 @@ class TaskListView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
+class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
@@ -82,6 +85,7 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Returns the details of a specific task by its ID.',
         tags=['tasks'],
         examples=[payloads.TASK_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: TaskSerializer,
             403: core_responses.RESPONSE_403,
@@ -96,6 +100,7 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Fully updates a task. Only the author can update it.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: TaskSerializer,
             400: core_responses.RESPONSE_400,
@@ -111,6 +116,7 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Partially updates a task. Only the author can update it.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: TaskSerializer,
             400: core_responses.RESPONSE_400,
@@ -125,6 +131,7 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Delete a task',
         description='Deletes a task. Only the author can delete it.',
         tags=['tasks'],
+        request=None,
         responses={
             204: task_responses.RESPONSE_204_DELETED,
             403: core_responses.RESPONSE_403,
@@ -134,5 +141,5 @@ class TaskDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request: Request, *args, **kwargs) -> Response:
         return super().delete(request, *args, **kwargs)
 
-    def get_queryset(self) -> models.QuerySet[Task]:
+    def get_user_queryset(self) -> models.QuerySet[Task]:
         return Task.objects.filter(user=self.request.user, is_archived=False)

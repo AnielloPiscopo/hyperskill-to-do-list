@@ -21,6 +21,7 @@ class TaskArchiveView(APIView):
         summary='Archive a task',
         description='Archives a task. Only the author can archive it.',
         tags=['tasks'],
+        request=None,
         responses={
             200: task_responses.RESPONSE_200_ARCHIVED,
             403: core_responses.RESPONSE_403,
@@ -41,6 +42,7 @@ class TaskRestoreView(APIView):
         summary='Restore a task',
         description='Restores an archived task. Only the author can restore it.',
         tags=['tasks'],
+        request=None,
         responses={
             200: task_responses.RESPONSE_200_RESTORED,
             403: core_responses.RESPONSE_403,

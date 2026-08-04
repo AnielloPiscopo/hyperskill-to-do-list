@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from core.constants.api import responses as core_responses
 from core.permissions import IsAuthorOrReadOnly
+from core.mixins import UserScopedQuerysetMixin
 from board.constants.api import payloads, responses as board_responses
 from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
@@ -15,7 +16,7 @@ from board.serializers import BoardSerializer, BoardDetailSerializer
 __all__ = ['BoardListView', 'BoardDetailView']
 
 
-class BoardListView(generics.ListCreateAPIView):
+class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
 
@@ -28,6 +29,7 @@ class BoardListView(generics.ListCreateAPIView):
         description='Returns all boards.',
         tags=['boards'],
         examples=[payloads.BOARD_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: BoardSerializer(many=True),
             403: core_responses.RESPONSE_403
@@ -41,6 +43,7 @@ class BoardListView(generics.ListCreateAPIView):
         description='Creates a new board. The author is automatically set to the logged in user.',
         tags=['boards'],
         examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             201: BoardSerializer,
             400: core_responses.RESPONSE_400,
@@ -50,14 +53,14 @@ class BoardListView(generics.ListCreateAPIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         return super().post(request, *args, **kwargs)
 
-    def get_queryset(self) -> models.QuerySet[Board]:
+    def get_user_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False).order_by('title')
 
     def perform_create(self, serializer: BaseSerializer) -> None:
         serializer.save(user=self.request.user)
 
 
-class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
+class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_serializer_class(self):
@@ -70,6 +73,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Returns the details of a specific board by its ID, including its tasks.',
         tags=['boards'],
         examples=[payloads.BOARD_DETAIL_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: BoardDetailSerializer,
             403: core_responses.RESPONSE_403,
@@ -84,6 +88,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         description='Fully updates a board. Only the author can update it.',
         tags=['boards'],
         examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
+        request=None,
         responses={
             200: BoardSerializer,
             400: OpenApiResponse(description='Bad request — invalid data.'),
@@ -113,6 +118,7 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
         summary='Delete a board',
         description='Deletes a board. Only the author can delete it.',
         tags=['boards'],
+        request=None,
         responses={
             204: board_responses.RESPONSE_204_DELETED,
             403: core_responses.RESPONSE_403,
@@ -122,5 +128,5 @@ class BoardDetailView(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request: Request, *args, **kwargs) -> Response:
         return super().delete(request, *args, **kwargs)
 
-    def get_queryset(self) -> models.QuerySet[Board]:
+    def get_user_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False)
