@@ -1,3 +1,4 @@
+import logging
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
@@ -5,9 +6,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth import authenticate
+from core.utils.logs import LogHelper
 from core.throttling import LoginRateThrottle
 
 __all__ = ['LoginView']
+
+logger = logging.getLogger(__name__)
 
 
 class LoginView(APIView):
@@ -35,10 +39,22 @@ class LoginView(APIView):
         }
     )
     def post(self, request):
+        logger.info(
+            f"{LogHelper.build_prefix('users', 'LoginView', 'POST', LogHelper.Direction.REQUEST)} - received")
+
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
         if not user:
-            return Response({'detail': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
+            response = Response({'detail': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)
+            logger.info(
+                f"{LogHelper.build_prefix('users', 'LoginView', 'POST', LogHelper.Direction.RESPONSE)}"
+                f" - status={response.status_code}, reason=invalid_credentials")
+            return response
+
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key}, status=status.HTTP_200_OK)
+        response = Response({'token': token.key}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('users', 'LoginView', 'POST', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
+        return response
