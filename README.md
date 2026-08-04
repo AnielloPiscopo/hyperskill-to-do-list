@@ -4,6 +4,8 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 
 This repository contains the backend (`project/be`). A frontend (`project/fe`) may be added in the future.
 
+🔗 **Live API:** [https://hyperskill-to-do-list.onrender.com](https://hyperskill-to-do-list.onrender.com)
+
 ---
 
 ## Features
@@ -34,6 +36,9 @@ This repository contains the backend (`project/be`). A frontend (`project/fe`) m
 - PostgreSQL (development, via Docker)
 - SQLite (tests)
 - Docker / Docker Compose
+- Render (deployment)
+- Neon (PostgreSQL serverless, production)
+- PostgreSQL via Docker Compose (development)
 
 ---
 
