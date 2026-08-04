@@ -14,6 +14,7 @@ class InfoView(APIView):
         summary='Get current user',
         description='Returns the profile of the currently authenticated user.',
         tags=['auth'],
+        request=None,
         responses={
             200: InfoSerializer,
             401: OpenApiResponse(description='Authentication credentials were not provided.'),

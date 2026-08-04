@@ -15,6 +15,7 @@ class LogoutView(APIView):
         summary='Logout',
         description='Invalidates the current token.',
         tags=['auth'],
+        request=None,
         responses={
             200: OpenApiResponse(description='Logged out successfully.'),
             401: OpenApiResponse(description='Authentication credentials were not provided.'),
