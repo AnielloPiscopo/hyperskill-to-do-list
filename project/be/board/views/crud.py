@@ -54,7 +54,7 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         description='Creates a new board. The author is automatically set to the logged in user.',
         tags=['boards'],
         examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
-        request=None,
+        request=BoardSerializer,
         responses={
             201: BoardSerializer,
             400: core_responses.RESPONSE_400,
@@ -112,7 +112,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         description='Fully updates a board. Only the author can update it.',
         tags=['boards'],
         examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
-        request=None,
+        request=BoardSerializer,
         responses={
             200: BoardSerializer,
             400: OpenApiResponse(description='Bad request — invalid data.'),
