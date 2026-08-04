@@ -2,18 +2,23 @@
 
 A TODO List REST API built with Django and Django REST Framework, developed as part of a HyperSkill project. The API allows users to organize tasks into boards, manage their lifecycle (including soft delete with cascade archiving), and explore the API through auto-generated documentation.
 
+This repository contains the backend (`project/be`). A frontend (`project/fe`) may be added in the future.
+
 ---
 
 ## Features
 
 - **Task management** — create, read, update, and delete tasks
 - **Board management** — group tasks into boards, with full CRUD
+- **Task priority** — assign priority levels to tasks, with automatic ordering by priority and status
 - **Soft delete** — archive and restore both tasks and boards instead of permanently deleting them
 - **Cascade archiving** — archiving a board archives all of its tasks; restoring a board can optionally restore its tasks too
 - **Bulk operations** — archive or restore multiple tasks/boards at once (all or a specific list of ids)
-- **Authentication** — token-based authentication with login and registration endpoints
+- **Authentication** — token-based authentication with login, registration, logout, and password change
+- **User profile** — retrieve the current user's profile via `/auth/me/`
 - **Permissions** — only the author of a task or board can update, delete, archive, or restore it
-- **Filtering, search & ordering** — filter tasks by status/board, search by title/description, order by multiple fields
+- **Rate limiting** — login and registration endpoints are throttled to prevent brute force attacks
+- **Filtering, search & ordering** — filter tasks by status/priority/board, search by title/description, order by multiple fields
 - **Pagination** — consistent page-based pagination across list endpoints
 - **API documentation** — auto-generated Swagger UI via `drf-spectacular`
 - **Containerized environment** — PostgreSQL via Docker Compose for development
@@ -29,6 +34,20 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 - PostgreSQL (development, via Docker)
 - SQLite (tests)
 - Docker / Docker Compose
+
+---
+
+## Repository Structure
+
+```
+hyperskill-to-do-list/
+├── project/
+│   ├── be/       ← Django REST API (this document)
+│   └── fe/       ← Frontend (planned)
+├── tasks/        ← HyperSkill course task files
+├── .gitignore
+└── README.md
+```
 
 ---
 
@@ -72,10 +91,13 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 
 ### Authentication
 
-| Method | Endpoint              | Description               | Auth required |
-|--------|------------------------|----------------------------|----------------|
-| POST   | `/auth/register/`     | Register a new user        | ❌             |
-| POST   | `/auth/login/`        | Log in and obtain a token  | ❌             |
+| Method | Endpoint                  | Description                        | Auth required |
+|--------|----------------------------|------------------------------------|----------------|
+| POST   | `/auth/register/`         | Register a new user                | ❌             |
+| POST   | `/auth/login/`            | Log in and obtain a token          | ❌             |
+| POST   | `/auth/logout/`           | Invalidate the current token       | ✅             |
+| GET    | `/auth/me/`               | Retrieve the current user profile  | ✅             |
+| POST   | `/auth/change-password/`  | Change the current user's password | ✅             |
 
 ### Boards
 
@@ -110,16 +132,16 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 | POST   | `/tasks/<id>/restore/`        | Restore a task                             | ✅ Author only     |
 
 **Filtering / search / ordering** on `GET /tasks/`:
-- `?status=` and `?board=` — filter by task status or board
+- `?status=`, `?priority=` and `?board=` — filter by task status, priority or board
 - `?search=` — search by title or description
-- `?ordering=` — order by `set_to_complete`, `status`, or `created_at`
+- `?ordering=` — order by `set_to_complete`, `status`, `priority` or `created_at`
 
 ### Documentation
 
-| Endpoint        | Description    |
-|-------------------|------------------|
-| `/`                | Swagger UI       |
-| `/api/schema/`     | Raw OpenAPI schema |
+| Endpoint        | Description         |
+|-------------------|---------------------|
+| `/`                | Swagger UI          |
+| `/api/schema/`     | Raw OpenAPI schema  |
 
 ---
 
@@ -134,7 +156,8 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 | `description`      | TextField (max 1024)          | Task description                        |
 | `goal_set_date`    | DateField                    | Date the task was created                |
 | `set_to_complete`  | DateField                    | Deadline                                |
-| `status`           | CharField (enum)              | `IN_PROGRESS`, `TODO`, or `DONE`         |
+| `status`           | IntegerField (enum)           | `IN_PROGRESS=0`, `TODO=1`, `DONE=2`     |
+| `priority`         | IntegerField (enum)           | `HIGH=0`, `MEDIUM=1`, `LOW=2`, `ZERO=3` |
 | `user`             | ForeignKey (User)              | Task author                             |
 | `board`            | ForeignKey (Board, nullable)    | Board the task belongs to                |
 | `is_archived`      | BooleanField                  | Soft-delete flag (inherited from `BaseModel`) |
@@ -147,7 +170,7 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 | `id`               | AutoField              | Auto-generated                |
 | `title`            | CharField (max 100)     | Board title                   |
 | `description`      | TextField (max 2048)    | Board description              |
-| `color`            | CharField (#HEX)        | Display color                 |
+| `color`            | CharField (#HEX)        | Display color (e.g. `#FF0000`) |
 | `user`             | ForeignKey (User)        | Board author                  |
 | `is_archived`      | BooleanField            | Soft-delete flag (inherited from `BaseModel`) |
 | `created_at` / `updated_at` | DateTimeField | Timestamps (inherited from `BaseModel`) |
@@ -167,6 +190,26 @@ An abstract base model shared by both `Task` and `Board`, providing `is_archived
 
 ---
 
+## Task Ordering
+
+Tasks are automatically ordered by priority and status using the following logic:
+
+```
+HIGH priority   + IN_PROGRESS
+HIGH priority   + TODO
+MEDIUM priority + IN_PROGRESS
+MEDIUM priority + TODO
+LOW priority    + IN_PROGRESS
+LOW priority    + TODO
+No priority     + IN_PROGRESS
+No priority     + TODO
+DONE (regardless of priority)
+```
+
+Priority can be assigned to tasks with status `IN_PROGRESS` or `TODO`. Tasks with status `DONE` cannot have a priority other than `ZERO`.
+
+---
+
 ## Soft Delete & Cascade Logic
 
 Rather than permanently deleting tasks and boards, the API supports archiving:
@@ -180,47 +223,47 @@ The archive/restore logic lives in dedicated service modules (`task/services`, `
 
 ---
 
-## Project Structure
+## Backend Structure
 
 ```
 project/be/
 ├── django_to_do_list/
 │   ├── settings/
-│   │   ├── base.py
+│   │   ├── __init__.py
 │   │   ├── local.py
 │   │   ├── auth.py
 │   │   └── drf.py
 │   └── urls.py
-├── core/                      ← shared base model, permissions
+├── core/                      ← shared base model, permissions, validators
 │   ├── models/
 │   │   └── base.py
+│   ├── constants/
+│   │   └── api/
 │   └── tests/
-├── users/                     ← registration & login
+├── users/                     ← registration, login, logout, profile, password
 │   ├── serializers/
-│   │   └── register.py
 │   └── views/
 │       ├── login.py
-│       └── register.py
+│       ├── logout.py
+│       ├── me.py
+│       ├── register.py
+│       └── change_password.py
 ├── board/
 │   ├── models/
-│   │   └── board.py
 │   ├── serializers/
-│   │   └── board.py
 │   ├── services/
-│   │   └── soft_delete.py
+│   ├── constants/
 │   ├── views/
 │   │   ├── crud.py
 │   │   └── soft_delete.py
 │   └── tests/
 ├── task/
 │   ├── enums/
-│   │   └── task_status.py
+│   │   └── choices.py        ← TaskStatus, TaskPriority
 │   ├── models/
-│   │   └── task.py
 │   ├── serializers/
-│   │   └── task.py
 │   ├── services/
-│   │   └── soft_delete.py
+│   ├── constants/
 │   ├── views/
 │   │   ├── crud.py
 │   │   └── soft_delete.py
@@ -270,4 +313,8 @@ This project was originally developed in 5 stages as part of a HyperSkill course
 - Migrated the development database from SQLite to PostgreSQL, running via Docker Compose
 - Implemented soft delete (archive/restore) for tasks and boards, including cascade archiving from boards to their tasks
 - Added bulk archive/restore endpoints supporting both "all" and id-based operations
-- Migrated API documentation from `drf-yasg` to `drf-spectacular` (OpenAPI 3) and added token-based login alongside registration
+- Migrated API documentation from `drf-yasg` to `drf-spectacular` (OpenAPI 3)
+- Added full user profile management: login, logout, profile endpoint, and password change
+- Added rate limiting on login and registration endpoints to prevent brute force attacks
+- Added `priority` field to tasks (`HIGH`, `MEDIUM`, `LOW`, `ZERO`) with automatic ordering by priority and status
+- Added field-level validation: hex color format for boards, date range consistency, board ownership check
