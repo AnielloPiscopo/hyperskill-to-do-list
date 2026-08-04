@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -7,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiTypes
 from core.constants.api import responses as core_responses
+from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from board.constants.api import payloads, responses as board_responses
 from board.models import Board
@@ -14,6 +16,7 @@ from board.services import archive_board, restore_board, archive_boards, restore
 
 __all__ = ['BoardArchiveView', 'BoardRestoreView', 'BoardArchiveAllView', 'BoardRestoreAllView']
 
+logger = logging.getLogger(__name__)
 
 class BoardArchiveView(APIView):
     permission_classes = [IsAuthenticated]
@@ -30,10 +33,17 @@ class BoardArchiveView(APIView):
         }
     )
     def post(self, request: Request, pk: int) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardArchiveView', 'POST',
+                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
         board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=False)
         self.check_object_permissions(request, board)
         archive_board(board)
-        return Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardArchiveView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class BoardRestoreView(APIView):
@@ -60,11 +70,18 @@ class BoardRestoreView(APIView):
         }
     )
     def post(self, request: Request, pk: int):
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardRestoreView', 'POST',
+                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
         board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, board)
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_board(board, restore_tasks=restore_tasks)
-        return Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardRestoreView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class BoardArchiveAllView(APIView):
@@ -93,9 +110,15 @@ class BoardArchiveAllView(APIView):
         }
     )
     def post(self, request: Request) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardArchiveAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
         ids: list[int] | None = request.data.get('ids')
         archive_boards(user=request.user, ids=ids if ids is not None and len(ids) > 0 else None)
-        return Response({'detail': 'Boards archived.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Boards archived.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardArchiveAllView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class BoardRestoreAllView(APIView):
@@ -133,8 +156,14 @@ class BoardRestoreAllView(APIView):
         }
     )
     def post(self, request: Request) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardRestoreAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
         ids: list[int] | None = request.data.get('ids')
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_boards(user=request.user, ids=ids if ids is not None and len(ids) > 0 else None,
                        restore_tasks=restore_tasks)
-        return Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardRestoreAllView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response

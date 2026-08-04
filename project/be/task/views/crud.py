@@ -1,3 +1,4 @@
+import logging
 from django.db import models
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from django_filters.rest_framework import DjangoFilterBackend
 from core.constants.api import responses as core_responses
+from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
 from task.constants.api import payloads, responses as task_responses
@@ -16,6 +18,8 @@ from task.serializers import TaskSerializer
 from task.enums import TaskStatus, TaskPriority
 
 __all__ = ['TaskDetailView', 'TaskListView']
+
+logger = logging.getLogger(__name__)
 
 
 class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
@@ -40,7 +44,13 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        return super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskListView', 'GET', LogHelper.Direction.REQUEST)} - received")
+        response = super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskListView', 'GET',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Create a new task',
@@ -55,7 +65,13 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         }
     )
     def post(self, request: Request, *args, **kwargs) -> Response:
-        return super().post(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskListView', 'POST', LogHelper.Direction.REQUEST)} - received")
+        response = super().post(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskListView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     def get_user_queryset(self) -> models.QuerySet[Task]:
         return Task.objects.filter(user=self.request.user, is_archived=False).annotate(
@@ -95,7 +111,13 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        return super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
+        response = super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'GET',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Update a task',
@@ -111,7 +133,13 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         }
     )
     def put(self, request: Request, *args, **kwargs) -> Response:
-        return super().put(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PUT', LogHelper.Direction.REQUEST)} - received")
+        response = super().put(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PUT',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Partially update a task',
@@ -127,7 +155,13 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         }
     )
     def patch(self, request: Request, *args, **kwargs) -> Response:
-        return super().patch(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PATCH', LogHelper.Direction.REQUEST)} - received")
+        response = super().patch(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PATCH',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Delete a task',
@@ -141,7 +175,13 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         }
     )
     def delete(self, request: Request, *args, **kwargs) -> Response:
-        return super().delete(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'DELETE', LogHelper.Direction.REQUEST)} - received")
+        response = super().delete(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskDetailView', 'DELETE',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
     def get_user_queryset(self) -> models.QuerySet[Task]:
         return Task.objects.filter(user=self.request.user, is_archived=False)

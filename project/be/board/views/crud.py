@@ -1,3 +1,4 @@
+import logging
 from django.db import models
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 from rest_framework import generics
@@ -7,6 +8,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from core.constants.api import responses as core_responses
+from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
 from board.constants.api import payloads, responses as board_responses
@@ -14,6 +16,8 @@ from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
 
 __all__ = ['BoardListView', 'BoardDetailView']
+
+logger = logging.getLogger(__name__)
 
 
 class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
@@ -37,7 +41,13 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        return super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardListView', 'GET', LogHelper.Direction.REQUEST)} - received")
+        response = super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardListView', 'GET', LogHelper.Direction.RESPONSE)} "
+            f" - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Create a new board',
@@ -52,7 +62,13 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         }
     )
     def post(self, request: Request, *args, **kwargs) -> Response:
-        return super().post(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardListView', 'POST', LogHelper.Direction.REQUEST)} - received")
+        response = super().post(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardListView', 'POST', LogHelper.Direction.RESPONSE)} "
+            f" - status={response.status_code}")
+        return response
 
     def get_user_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False).order_by('title')
@@ -83,7 +99,13 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        return super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
+        response = super().get(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Update a board',
@@ -99,7 +121,13 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         }
     )
     def put(self, request: Request, *args, **kwargs) -> Response:
-        return super().put(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PUT', LogHelper.Direction.REQUEST)} - received")
+        response = super().put(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PUT', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Partially update a board',
@@ -114,7 +142,13 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         }
     )
     def patch(self, request: Request, *args, **kwargs) -> Response:
-        return super().patch(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PATCH', LogHelper.Direction.REQUEST)} - received")
+        response = super().patch(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PATCH', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
+        return response
 
     @extend_schema(
         summary='Delete a board',
@@ -128,7 +162,13 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         }
     )
     def delete(self, request: Request, *args, **kwargs) -> Response:
-        return super().delete(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'DELETE', LogHelper.Direction.REQUEST)} - received")
+        response = super().delete(request, *args, **kwargs)
+        logger.info(
+            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'DELETE', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
+        return response
 
     def get_user_queryset(self) -> models.QuerySet[Board]:
         return Board.objects.filter(user=self.request.user, is_archived=False)
