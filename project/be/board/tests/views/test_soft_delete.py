@@ -180,6 +180,24 @@ class BoardArchiveAllViewTest(APITestCase):
         response = self.client.post('/boards/archive-all/', {}, format='json')
         self.assertEqual(response.data['detail'], 'Boards archived.')
 
+    def test_archive_all_with_non_integer_ids_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/archive-all/', {'ids': ['abc', 'def']}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_archive_all_with_ids_not_a_list_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/archive-all/', {'ids': 'not-a-list'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_archive_all_with_invalid_ids_does_not_archive_anything(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post('/boards/archive-all/', {'ids': ['abc']}, format='json')
+        self.board1.refresh_from_db()
+        self.board2.refresh_from_db()
+        self.assertFalse(self.board1.is_archived)
+        self.assertFalse(self.board2.is_archived)
+
 
 class BoardRestoreAllViewTest(APITestCase):
     client: APIClient
@@ -247,6 +265,24 @@ class BoardRestoreAllViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.post('/boards/restore-all/', {}, format='json')
         self.assertEqual(response.data['detail'], 'Boards restored.')
+
+    def test_restore_all_with_non_integer_ids_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/restore-all/', {'ids': ['abc', 'def']}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_restore_all_with_ids_not_a_list_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/restore-all/', {'ids': 'not-a-list'}, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_restore_all_with_invalid_ids_does_not_restore_anything(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.post('/boards/restore-all/', {'ids': ['abc']}, format='json')
+        self.board1.refresh_from_db()
+        self.board2.refresh_from_db()
+        self.assertTrue(self.board1.is_archived)
+        self.assertTrue(self.board2.is_archived)
 
 def _make_task(user, board=None, is_archived=False):
     return Task.objects.create(

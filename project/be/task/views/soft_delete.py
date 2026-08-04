@@ -9,6 +9,7 @@ from drf_spectacular.utils import extend_schema
 from core.constants.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
+from core.serializers import BulkIdsSerializer
 from task.constants.api import payloads, responses as task_responses
 from task.models import Task
 from task.services import archive_task, restore_task, archive_tasks, restore_tasks
@@ -81,32 +82,31 @@ class TaskArchiveAllView(APIView):
         description='Archives all tasks or a subset by ids. If ids is empty or not provided, archives all tasks.',
         tags=['tasks'],
         examples=[payloads.TASK_IDS_REQUEST_EXAMPLE, payloads.TASK_IDS_ALL_REQUEST_EXAMPLE],
-        request={
-            'application/json': {
-                'type': 'object',
-                'properties': {
-                    'ids': {
-                        'type': 'array',
-                        'items': {'type': 'integer'},
-                        'description': 'List of task ids to archive. If empty, archives all.'
-                    }
-                }
-            }
-        },
+        request=BulkIdsSerializer,
         responses={
             200: task_responses.RESPONSE_200_ARCHIVED_ALL,
+            400: core_responses.RESPONSE_400,
             403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request: Request) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
-        ids: list[int] | None = request.data.get('ids')
+
+        serializer = BulkIdsSerializer(data=request.data)
+        if not serializer.is_valid():
+            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            logger.info(
+                f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.RESPONSE)}"
+                f" - status={response.status_code}, reason=invalid_serializer")
+            return response
+
+        ids: list[int] | None = serializer.validated_data.get('ids')
         archive_tasks(user=request.user, ids=ids if ids else None)
         response = Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
         logger.info(
-            f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST',
-                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+            f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
         return response
 
 
@@ -119,31 +119,29 @@ class TaskRestoreAllView(APIView):
                     'restores all tasks.',
         tags=['tasks'],
         examples=[payloads.TASK_IDS_REQUEST_EXAMPLE, payloads.TASK_IDS_ALL_REQUEST_EXAMPLE],
-        request={
-            'application/json': {
-                'type': 'object',
-                'properties': {
-                    'ids': {
-                        'type': 'array',
-                        'items': {'type': 'integer'},
-                        'description': 'List of task ids to restore. If empty, restores all.'
-                    }
-                }
-            }
-        },
+        request=BulkIdsSerializer,
         responses={
             200: task_responses.RESPONSE_200_RESTORED_ALL,
+            400: core_responses.RESPONSE_400,
             403: core_responses.RESPONSE_403,
         }
     )
     def post(self, request: Request) -> Response:
         logger.info(
-            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST',
-                                      LogHelper.Direction.REQUEST)} - received")
-        ids: list[int] | None = request.data.get('ids')
+            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
+
+        serializer = BulkIdsSerializer(data=request.data)
+        if not serializer.is_valid():
+            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            logger.info(
+                f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST', LogHelper.Direction.RESPONSE)}"
+                f" - status={response.status_code}, reason=invalid_serializer")
+            return response
+
+        ids: list[int] | None = serializer.validated_data.get('ids')
         restore_tasks(user=request.user, ids=ids if ids else None)
         response = Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)
         logger.info(
-            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST',
-                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST', LogHelper.Direction.RESPONSE)}"
+            f" - status={response.status_code}")
         return response
