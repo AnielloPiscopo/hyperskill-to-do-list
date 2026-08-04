@@ -19,7 +19,8 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'task',
-    'board'
+    'board',
+    'users',
 ]
 
 MIDDLEWARE = [
