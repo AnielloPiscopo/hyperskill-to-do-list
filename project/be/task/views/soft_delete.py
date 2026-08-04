@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -6,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from core.constants.api import responses as core_responses
+from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from task.constants.api import payloads, responses as task_responses
 from task.models import Task
@@ -13,6 +15,7 @@ from task.services import archive_task, restore_task, archive_tasks, restore_tas
 
 __all__ = ['TaskArchiveView', 'TaskRestoreView', 'TaskArchiveAllView', 'TaskRestoreAllView']
 
+logger = logging.getLogger(__name__)
 
 class TaskArchiveView(APIView):
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
@@ -29,10 +32,17 @@ class TaskArchiveView(APIView):
         }
     )
     def post(self, request: Request, pk: int) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskArchiveView', 'POST',
+                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
         task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=False)
         self.check_object_permissions(request, task)
         archive_task(task)
-        return Response({'detail': 'Task archived.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Task archived.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskArchiveView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class TaskRestoreView(APIView):
@@ -50,10 +60,17 @@ class TaskRestoreView(APIView):
         }
     )
     def post(self, request: Request, pk: int) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskRestoreView', 'POST',
+                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
         task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, task)
         restore_task(task)
-        return Response({'detail': 'Task restored.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Task restored.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskRestoreView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class TaskArchiveAllView(APIView):
@@ -82,9 +99,15 @@ class TaskArchiveAllView(APIView):
         }
     )
     def post(self, request: Request) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
         ids: list[int] | None = request.data.get('ids')
         archive_tasks(user=request.user, ids=ids if ids else None)
-        return Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
 
 
 class TaskRestoreAllView(APIView):
@@ -114,6 +137,13 @@ class TaskRestoreAllView(APIView):
         }
     )
     def post(self, request: Request) -> Response:
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST',
+                                      LogHelper.Direction.REQUEST)} - received")
         ids: list[int] | None = request.data.get('ids')
         restore_tasks(user=request.user, ids=ids if ids else None)
-        return Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)
+        response = Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)
+        logger.info(
+            f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST',
+                                      LogHelper.Direction.RESPONSE)} - status={response.status_code}")
+        return response
