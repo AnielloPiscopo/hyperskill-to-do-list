@@ -4,6 +4,9 @@ import os
 
 load_dotenv()
 
+from .drf import *
+from .auth import *
+
 BASE_DIR = Path(__file__).resolve().parent.parent.parent  # ← one more parent since we're in settings/
 SECRET_KEY = os.getenv('SECRET_KEY')
 
