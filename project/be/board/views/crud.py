@@ -17,6 +17,7 @@ __all__ = ['BoardListView', 'BoardDetailView']
 
 
 class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
+    queryset = Board.objects.all()
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
 
@@ -61,6 +62,7 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
 
 
 class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    queryset = Board.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
     def get_serializer_class(self):

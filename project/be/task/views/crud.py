@@ -19,6 +19,7 @@ __all__ = ['TaskDetailView', 'TaskListView']
 
 
 class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
 
@@ -77,6 +78,7 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
 
 
 class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
