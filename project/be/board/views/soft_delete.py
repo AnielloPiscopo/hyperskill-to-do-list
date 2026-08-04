@@ -22,6 +22,7 @@ class BoardArchiveView(APIView):
         summary='Archive a board',
         description='Archives a board and all its tasks. Only the author can archive it.',
         tags=['boards'],
+        request=None,
         responses={
             200: board_responses.RESPONSE_200_ARCHIVED,
             403: core_responses.RESPONSE_403,
@@ -51,6 +52,7 @@ class BoardRestoreView(APIView):
                 required=False,
             )
         ],
+        request=None,
         responses={
             200: board_responses.RESPONSE_200_RESTORED,
             403: core_responses.RESPONSE_403,
