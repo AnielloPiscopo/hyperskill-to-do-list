@@ -57,7 +57,7 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         description='Creates a new task. The author is automatically set to the logged in user.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
-        request=None,
+        request=TaskSerializer,
         responses={
             201: TaskSerializer,
             400: core_responses.RESPONSE_400,
@@ -124,7 +124,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         description='Fully updates a task. Only the author can update it.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
-        request=None,
+        request=TaskSerializer,
         responses={
             200: TaskSerializer,
             400: core_responses.RESPONSE_400,
@@ -146,7 +146,6 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         description='Partially updates a task. Only the author can update it.',
         tags=['tasks'],
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
-        request=None,
         responses={
             200: TaskSerializer,
             400: core_responses.RESPONSE_400,
