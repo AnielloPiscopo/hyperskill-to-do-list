@@ -15,6 +15,7 @@ class RegisterView(generics.CreateAPIView):
         summary='Register a new user',
         description='Creates a new user account. No authentication required.',
         tags=['auth'],
+        request=None,
         responses={
             201: OpenApiResponse(description='User created successfully.'),
             400: OpenApiResponse(description='Bad request — invalid data or passwords do not match.'),
