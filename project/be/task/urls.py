@@ -5,7 +5,8 @@ from .views import (
     TaskArchiveView,
     TaskRestoreView,
     TaskRestoreAllView,
-    TaskArchiveAllView
+    TaskArchiveAllView,
+    TaskMoveView,
 )
 
 urlpatterns = [
@@ -15,4 +16,5 @@ urlpatterns = [
     path('restore-all/', TaskRestoreAllView.as_view()),
     path('<int:pk>/archive/', TaskArchiveView.as_view()),
     path('<int:pk>/restore/', TaskRestoreView.as_view()),
+    path('move/', TaskMoveView.as_view()),
 ]
