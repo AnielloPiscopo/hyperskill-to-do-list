@@ -3,6 +3,12 @@ from rest_framework import serializers
 __all__ = ['ChangePasswordSerializer']
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """Serializer for the change-password flow.
+
+    Does not extend ModelSerializer because it operates on request data only
+    and never directly reads from or writes to a model instance.
+    """
+
     old_password = serializers.CharField(
         write_only=True,
         style={'input_type': 'password'},
@@ -20,6 +26,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     )
 
     def validate(self, data):
+        """Ensure the two new-password fields are identical."""
         if data['new_password'] != data['confirm_new_password']:
             raise serializers.ValidationError('Passwords must match.')
         return data

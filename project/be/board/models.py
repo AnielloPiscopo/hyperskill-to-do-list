@@ -12,6 +12,14 @@ __all__ = ["Board"]
 
 
 class Board(BaseModel):
+    """A board that groups related tasks and belongs to a single user.
+
+    Supports soft-delete via the inherited `is_archived` flag.
+    Archiving a board also cascades archival to all its tasks.
+    """
+
+    # TYPE_CHECKING block avoids a circular import at runtime while still
+    # providing type information for the reverse relation added by Task.board FK
     if TYPE_CHECKING:
         tasks: "QuerySet[Task]"
 
