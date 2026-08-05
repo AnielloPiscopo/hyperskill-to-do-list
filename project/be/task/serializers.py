@@ -43,8 +43,8 @@ class TaskSerializer(BaseModelSerializer):
 
         self._check_dates(goal_set_date, set_to_complete)
 
-        priority: int | None = data.get('priority')
-        status: int | None = data.get('status')
+        priority: str | None = data.get('priority')
+        status: str | None = data.get('status')
 
         self._check_priority_and_status(priority, status)
 
@@ -59,7 +59,7 @@ class TaskSerializer(BaseModelSerializer):
                 })
 
     @staticmethod
-    def _check_priority_and_status(priority: int | None, status: int | None) -> None:
+    def _check_priority_and_status(priority: str | None, status: str | None) -> None:
         if priority is not None and priority != TaskPriority.ZERO:
             if status == TaskStatus.DONE:
                 raise serializers.ValidationError({

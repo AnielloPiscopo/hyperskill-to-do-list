@@ -22,12 +22,14 @@ class Task(BaseModel):
     set_to_complete = models.DateField(
         help_text='Deadline for the task (YYYY-MM-DD)'
     )
-    status = models.IntegerField(
+    status = models.CharField(
+        max_length=20,
         choices=TaskStatus.choices,
         default=TaskStatus.TODO,
         help_text='Status of the task'
     )
-    priority = models.IntegerField(
+    priority = models.CharField(
+        max_length=20,
         choices=TaskPriority.choices,
         default=TaskPriority.ZERO,
         help_text='Priority of the task'
