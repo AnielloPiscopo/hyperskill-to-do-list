@@ -16,6 +16,8 @@ __all__ = ['TaskMoveView']
 logger = logging.getLogger(__name__)
 
 class TaskMoveView(APIView):
+    """View for moving multiple tasks to a board in a single request."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(

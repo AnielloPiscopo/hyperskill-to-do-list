@@ -6,6 +6,12 @@ from task.constants.api import validation_msg as task_msg
 __all__ = ['TaskMoveSerializer']
 
 class TaskMoveSerializer(serializers.Serializer):
+    """Serializer for moving a batch of tasks to a different board (or no board).
+
+    `ids` is required and must be non-empty; `board` accepts a PK or null —
+    passing null detaches the tasks from their current board.
+    """
+
     ids = serializers.ListField(child=serializers.IntegerField())
     board = serializers.PrimaryKeyRelatedField(
         queryset=Board.objects.all(),
@@ -13,6 +19,7 @@ class TaskMoveSerializer(serializers.Serializer):
     )
 
     def validate_board(self, board: Board | None) -> Board | None:
+        """Ensure the target board belongs to the current user."""
         if board is None:
             return board
 
