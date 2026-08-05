@@ -6,7 +6,7 @@ from task.constants.api import validation_msg as task_msg
 __all__ = ['TaskMoveSerializer']
 
 class TaskMoveSerializer(serializers.Serializer):
-    ids = serializers.ListField
+    ids = serializers.ListField(child=serializers.IntegerField())
     board = serializers.PrimaryKeyRelatedField(
         queryset=Board.objects.all(),
         allow_null=True,
