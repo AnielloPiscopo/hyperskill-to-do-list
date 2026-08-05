@@ -5,4 +5,5 @@ RESPONSE_200_ARCHIVED = OpenApiResponse(description='Task archived successfully.
 RESPONSE_200_RESTORED = OpenApiResponse(description='Task restored successfully.')
 RESPONSE_200_ARCHIVED_ALL = OpenApiResponse(description='Tasks archived successfully.')
 RESPONSE_200_RESTORED_ALL = OpenApiResponse(description='Tasks restored successfully.')
+RESPONSE_200_MOVED = OpenApiResponse(description='Tasks moved successfully.')
 RESPONSE_204_DELETED = OpenApiResponse(description='Task deleted successfully.')
