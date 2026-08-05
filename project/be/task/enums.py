@@ -2,13 +2,22 @@ from django.db import models
 
 __all__ = ['TaskStatus', 'TaskPriority']
 
-class TaskStatus(models.IntegerChoices):
-    IN_PROGRESS = 0, 'In Progress'
-    TODO = 1, 'To Do'
-    DONE = 2, 'Done'
+class TaskStatus(models.TextChoices):
+    """Valid states a task can be in throughout its lifecycle."""
 
-class TaskPriority(models.IntegerChoices):
-    HIGH = 0, 'High'
-    MEDIUM = 1, 'Medium'
-    LOW = 2, 'Low'
-    ZERO = 3, 'Zero'
+    IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
+    TODO = 'TODO', 'To Do'
+    DONE = 'DONE', 'Done'
+
+
+class TaskPriority(models.TextChoices):
+    """Priority levels for tasks, ordered from highest urgency to none.
+
+    ZERO acts as a sentinel "no priority" value and is the only priority
+    allowed when a task has status DONE (see TaskSerializer._check_priority_and_status).
+    """
+
+    HIGH = 'HIGH', 'High'
+    MEDIUM = 'MEDIUM', 'Medium'
+    LOW = 'LOW', 'Low'
+    ZERO = 'ZERO', 'Zero'

@@ -52,6 +52,9 @@ class ChangePasswordView(APIView):
 
         user.set_password(serializer.validated_data['new_password'])
         user.save()
+        # Invalidate the existing auth token so the client must log in again
+        # with the new password; avoids stale tokens remaining valid after a
+        # password change.
         Token.objects.filter(user=user).delete()
         response = Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
         logger.info(

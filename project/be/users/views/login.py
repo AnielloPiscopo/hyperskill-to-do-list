@@ -52,6 +52,8 @@ class LoginView(APIView):
                 f" - status={response.status_code}, reason=invalid_credentials")
             return response
 
+        # Reuse the existing token if one exists; a new one is created only on first login
+        # or after it has been explicitly deleted (e.g. on logout or password change).
         token, _ = Token.objects.get_or_create(user=user)
         response = Response({'token': token.key}, status=status.HTTP_200_OK)
         logger.info(

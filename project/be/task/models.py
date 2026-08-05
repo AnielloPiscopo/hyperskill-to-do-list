@@ -7,6 +7,13 @@ __all__ = ['Task']
 
 
 class Task(BaseModel):
+    """A single to-do item owned by a user and optionally associated with a board.
+
+    Supports soft-delete via the inherited `is_archived` flag.
+    Deleting a User cascades and removes all their tasks; deleting a Board
+    sets the task's `board` FK to NULL (tasks are kept).
+    """
+
     id = models.AutoField(primary_key=True)
     title = models.CharField(
         max_length=50,
@@ -22,12 +29,14 @@ class Task(BaseModel):
     set_to_complete = models.DateField(
         help_text='Deadline for the task (YYYY-MM-DD)'
     )
-    status = models.IntegerField(
+    status = models.CharField(
+        max_length=20,
         choices=TaskStatus.choices,
         default=TaskStatus.TODO,
         help_text='Status of the task'
     )
-    priority = models.IntegerField(
+    priority = models.CharField(
+        max_length=20,
         choices=TaskPriority.choices,
         default=TaskPriority.ZERO,
         help_text='Priority of the task'
