@@ -76,6 +76,7 @@ class BoardRestoreView(APIView):
                                       LogHelper.Direction.REQUEST)} - received, pk={pk}")
         board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, board)
+        # Query params are always strings, so compare against the literal 'true'
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_board(board, restore_tasks=restore_tasks)
         response = Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
@@ -158,6 +159,7 @@ class BoardRestoreAllView(APIView):
             return response
 
         ids: list[int] | None = serializer.validated_data.get('ids')
+        # Query params are always strings, so compare against the literal 'true'
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_boards(user=request.user, ids=ids if ids else None, restore_tasks=restore_tasks)
         response = Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)

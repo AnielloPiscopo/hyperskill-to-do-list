@@ -14,21 +14,31 @@ __all__ = ['BoardSerializer', 'BoardDetailSerializer']
 
 
 class BoardSerializer(BaseModelSerializer):
+    """Serializer for creating and updating boards.
+
+    `user` and `is_archived` are excluded because they are set server-side
+    (user is derived from the request; archival is handled via dedicated endpoints).
+    """
+
     class Meta(BaseModelSerializer.Meta):
         model = Board
         exclude = ['user', 'is_archived']
 
-    def validate_color(self, color: str) -> str: # noqa
+    def validate_color(self, color: str) -> str:  # noqa: field-level validator — DRF calls it via naming convention
+        """Validate that the color is a proper 6-digit hex string and normalise it to uppercase."""
         if not validators.is_valid_hex_color(color):
             raise serializers.ValidationError(validation_msg.INVALID_HEX_COLOR)
         return color.upper()
 
 
 class BoardDetailSerializer(BoardSerializer):
+    """Read-only serializer that extends BoardSerializer with the board's active tasks."""
+
     tasks = serializers.SerializerMethodField()
 
     @staticmethod
     def get_tasks(obj: Board) -> list[OrderedDict[str, Any]]:
+        """Return only the non-archived tasks for the board."""
         active_tasks: models.QuerySet[Task] = obj.tasks.filter(is_archived=False)
         return TaskSerializer(active_tasks, many=True).data
 

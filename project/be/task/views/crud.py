@@ -74,9 +74,13 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         return response
 
     def get_user_queryset(self) -> models.QuerySet[Task]:
+        # Annotate each task with a numeric sort key so the list is ordered by
+        # urgency: active high-priority tasks appear first, DONE tasks last.
+        # The specific integer values (0–7, 100) are arbitrary rank slots;
+        # only their relative order matters.
         return Task.objects.filter(user=self.request.user, is_archived=False).annotate(
             order=models.Case(
-                models.When(status=TaskStatus.DONE, then=models.Value(100)),
+                models.When(status=TaskStatus.DONE, then=models.Value(100)),  # DONE always sinks to the bottom
                 models.When(priority=TaskPriority.HIGH, status=TaskStatus.IN_PROGRESS, then=models.Value(0)),
                 models.When(priority=TaskPriority.HIGH, status=TaskStatus.TODO, then=models.Value(1)),
                 models.When(priority=TaskPriority.MEDIUM, status=TaskStatus.IN_PROGRESS, then=models.Value(2)),

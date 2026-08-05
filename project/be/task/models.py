@@ -7,6 +7,13 @@ __all__ = ['Task']
 
 
 class Task(BaseModel):
+    """A single to-do item owned by a user and optionally associated with a board.
+
+    Supports soft-delete via the inherited `is_archived` flag.
+    Deleting a User cascades and removes all their tasks; deleting a Board
+    sets the task's `board` FK to NULL (tasks are kept).
+    """
+
     id = models.AutoField(primary_key=True)
     title = models.CharField(
         max_length=50,
