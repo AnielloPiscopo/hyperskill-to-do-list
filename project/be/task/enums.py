@@ -2,13 +2,14 @@ from django.db import models
 
 __all__ = ['TaskStatus', 'TaskPriority']
 
-class TaskStatus(models.IntegerChoices):
-    IN_PROGRESS = 0, 'In Progress'
-    TODO = 1, 'To Do'
-    DONE = 2, 'Done'
+class TaskStatus(models.TextChoices):
+    IN_PROGRESS = 'IN_PROGRESS', 'In Progress'
+    TODO = 'TODO', 'To Do'
+    DONE = 'DONE', 'Done'
 
-class TaskPriority(models.IntegerChoices):
-    HIGH = 0, 'High'
-    MEDIUM = 1, 'Medium'
-    LOW = 2, 'Low'
-    ZERO = 3, 'Zero'
+
+class TaskPriority(models.TextChoices):
+    HIGH = 'HIGH', 'High'
+    MEDIUM = 'MEDIUM', 'Medium'
+    LOW = 'LOW', 'Low'
+    ZERO = 'ZERO', 'Zero'

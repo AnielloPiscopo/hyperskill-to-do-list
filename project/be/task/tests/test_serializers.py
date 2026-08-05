@@ -146,13 +146,13 @@ class TaskSerializerTest(TestCase):
         self.assertIn('description', serializer.errors)
 
     def test_invalid_status_is_invalid(self):
-        data = {**self.valid_data, 'status': 99}
+        data = {**self.valid_data, 'status': 'INVALID_STATUS'}
         serializer = TaskSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('status', serializer.errors)
 
     def test_invalid_priority_is_invalid(self):
-        data = {**self.valid_data, 'priority': 99}
+        data = {**self.valid_data, 'priority': 'INVALID_PRIORITY'}
         serializer = TaskSerializer(data=data)
         self.assertFalse(serializer.is_valid())
         self.assertIn('priority', serializer.errors)
