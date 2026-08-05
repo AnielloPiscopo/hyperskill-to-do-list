@@ -14,6 +14,12 @@ __all__ = ['TaskSerializer']
 
 
 class TaskSerializer(BaseModelSerializer):
+    board = serializers.PrimaryKeyRelatedField(
+        queryset=Board.objects.all(),
+        required=False,
+        allow_null=True
+    )
+
     class Meta(BaseModelSerializer.Meta):
         model = Task
         exclude = ['user', 'is_archived']
