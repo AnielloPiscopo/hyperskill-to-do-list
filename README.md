@@ -97,7 +97,7 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 ### Authentication
 
 | Method | Endpoint                  | Description                        | Auth required |
-|--------|----------------------------|------------------------------------|----------------|
+|--------|----------------------------|-----------------------------------|----------------|
 | POST   | `/auth/register/`         | Register a new user                | ❌             |
 | POST   | `/auth/login/`            | Log in and obtain a token          | ❌             |
 | POST   | `/auth/logout/`           | Invalidate the current token       | ✅             |
@@ -125,8 +125,8 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 
 | Method | Endpoint                    | Description                              | Auth required     |
 |--------|-------------------------------|--------------------------------------------|--------------------|
-| GET    | `/tasks/`                    | List all tasks (filter/search/order)        | ✅                 |
-| POST   | `/tasks/`                    | Create a new task                          | ✅                 |
+| GET    | `/tasks/`                     | List all tasks (filter/search/order)       | ✅                 |
+| POST   | `/tasks/`                     | Create a new task                          | ✅                 |
 | GET    | `/tasks/<id>/`                | Retrieve a task                            | ✅ Author only     |
 | PUT    | `/tasks/<id>/`                | Fully update a task                        | ✅ Author only     |
 | PATCH  | `/tasks/<id>/`                | Partially update a task                    | ✅ Author only     |
@@ -135,6 +135,7 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 | POST   | `/tasks/restore-all/`         | Restore all tasks, or a subset by ids      | ✅                 |
 | POST   | `/tasks/<id>/archive/`        | Archive a task                             | ✅ Author only     |
 | POST   | `/tasks/<id>/restore/`        | Restore a task                             | ✅ Author only     |
+| POST   | `/tasks/move/`                | Move a list of tasks to a board (or remove from board)     | ✅ |
 
 **Filtering / search / ordering** on `GET /tasks/`:
 - `?status=`, `?priority=` and `?board=` — filter by task status, priority or board
@@ -323,3 +324,4 @@ This project was originally developed in 5 stages as part of a HyperSkill course
 - Added rate limiting on login and registration endpoints to prevent brute force attacks
 - Added `priority` field to tasks (`HIGH`, `MEDIUM`, `LOW`, `ZERO`) with automatic ordering by priority and status
 - Added field-level validation: hex color format for boards, date range consistency, board ownership check
+- Added bulk move endpoint to assign or reassign a list of tasks to a board in a single operation
