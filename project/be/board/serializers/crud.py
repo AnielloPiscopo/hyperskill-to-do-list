@@ -3,6 +3,7 @@ from typing import Any
 
 from rest_framework import serializers
 from django.db import models
+from drf_spectacular.utils import extend_schema_field
 from core.constants.api import validation_msg
 from core.utils import validators
 from core.serializers import BaseModelSerializer
@@ -36,8 +37,8 @@ class BoardDetailSerializer(BoardSerializer):
 
     tasks = serializers.SerializerMethodField()
 
-    @staticmethod
-    def get_tasks(obj: Board) -> list[OrderedDict[str, Any]]:
+    @extend_schema_field(TaskSerializer(many=True))
+    def get_tasks(self, obj: Board) -> list[OrderedDict[str, Any]]:
         """Return only the non-archived tasks for the board."""
         active_tasks: models.QuerySet[Task] = obj.tasks.filter(is_archived=False)
         return TaskSerializer(active_tasks, many=True).data
