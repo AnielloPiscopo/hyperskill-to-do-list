@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
-from task.constants.api import responses as task_responses
+from task.schema.api import responses as task_responses
 from task.serializers import TaskMoveSerializer
 from task.services import move_tasks
 

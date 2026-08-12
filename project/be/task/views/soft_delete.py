@@ -6,11 +6,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.serializers import BulkIdsSerializer
-from task.constants.api import payloads, responses as task_responses
+from task.schema.api import payloads, responses as task_responses
 from task.models import Task
 from task.services import archive_task, restore_task, archive_tasks, restore_tasks
 

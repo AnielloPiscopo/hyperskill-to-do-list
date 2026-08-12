@@ -7,11 +7,11 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
-from board.constants.api import payloads, responses as board_responses
+from board.schema.api import payloads, responses as board_responses
 from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
 

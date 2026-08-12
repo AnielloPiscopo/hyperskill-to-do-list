@@ -8,6 +8,7 @@ from rest_framework import status
 from django.contrib.auth import authenticate
 from core.utils.logs import LogHelper
 from core.throttling import LoginRateThrottle
+from users.serializers import TokenResponseSerializer
 
 __all__ = ['LoginView']
 
@@ -33,7 +34,7 @@ class LoginView(APIView):
             }
         },
         responses={
-            200: OpenApiResponse(description='Token returned successfully.'),
+            200: OpenApiResponse(response=TokenResponseSerializer, description='Token returned successfully.'),
             400: OpenApiResponse(description='Invalid credentials.'),
             429: OpenApiResponse(description='Too many requests — rate limit exceeded.'),
         }
