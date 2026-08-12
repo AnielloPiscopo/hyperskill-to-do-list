@@ -1,10 +1,11 @@
 import logging
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from core.utils.logs import LogHelper
+from core.schema.api import responses as core_responses
 from users.serializers import InfoSerializer
 
 __all__ = ['InfoView']
@@ -21,7 +22,7 @@ class InfoView(APIView):
         request=None,
         responses={
             200: InfoSerializer,
-            401: OpenApiResponse(description='Authentication credentials were not provided.'),
+            401: core_responses.RESPONSE_401,
         }
     )
     def get(self, request):
