@@ -8,11 +8,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
 from django_filters.rest_framework import DjangoFilterBackend
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
-from task.constants.api import payloads, responses as task_responses
+from task.schema.api import payloads, responses as task_responses
 from task.models import Task
 from task.serializers import TaskSerializer
 from task.enums import TaskStatus, TaskPriority
