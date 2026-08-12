@@ -1,11 +1,13 @@
 import logging
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from core.utils.logs import LogHelper
+from core.schema.api import responses as core_responses
+from users.schema.api import responses as user_responses
 
 __all__ = ['LogoutView']
 
@@ -21,8 +23,8 @@ class LogoutView(APIView):
         tags=['auth'],
         request=None,
         responses={
-            200: OpenApiResponse(description='Logged out successfully.'),
-            401: OpenApiResponse(description='Authentication credentials were not provided.'),
+            200: user_responses.RESPONSE_200_LOGOUT,
+            401: core_responses.RESPONSE_401,
         }
     )
     def post(self, request):
