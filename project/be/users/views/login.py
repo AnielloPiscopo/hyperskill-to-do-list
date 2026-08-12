@@ -7,7 +7,10 @@ from rest_framework.views import APIView
 from rest_framework import status
 from django.contrib.auth import authenticate
 from core.utils.logs import LogHelper
+from core.schema.api import responses as core_responses
 from core.throttling import LoginRateThrottle
+from users.schema.api import responses as user_responses
+from users.serializers import TokenResponseSerializer, LoginRequestSerializer
 
 __all__ = ['LoginView']
 
@@ -22,20 +25,11 @@ class LoginView(APIView):
         summary='Login',
         description='Returns a token for the given username and password.',
         tags=['auth'],
-        request={
-            'application/json': {
-                'type': 'object',
-                'required': ['username', 'password'],
-                'properties': {
-                    'username': {'type': 'string'},
-                    'password': {'type': 'string'},
-                }
-            }
-        },
+        request=LoginRequestSerializer,
         responses={
-            200: OpenApiResponse(description='Token returned successfully.'),
-            400: OpenApiResponse(description='Invalid credentials.'),
-            429: OpenApiResponse(description='Too many requests — rate limit exceeded.'),
+            200: OpenApiResponse(response=TokenResponseSerializer, description='Token returned successfully.'),
+            400: user_responses.RESPONSE_400_LOGIN,
+            429: core_responses.RESPONSE_429,
         }
     )
     def post(self, request):

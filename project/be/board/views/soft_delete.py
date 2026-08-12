@@ -7,11 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiTypes
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.serializers import BulkIdsSerializer
-from board.constants.api import payloads, responses as board_responses
+from board.schema.api import payloads, responses as board_responses
 from board.models import Board
 from board.services import archive_board, restore_board, archive_boards, restore_boards
 

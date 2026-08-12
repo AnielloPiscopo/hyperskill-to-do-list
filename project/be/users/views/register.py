@@ -1,10 +1,12 @@
 import logging
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from users.serializers import RegisterSerializer
 from core.utils.logs import LogHelper
 from core.throttling import LoginRateThrottle
+from core.schema.api import responses as core_responses
+from users.schema.api import responses as user_responses
 
 __all__ = ['RegisterView']
 
@@ -21,9 +23,9 @@ class RegisterView(generics.CreateAPIView):
         tags=['auth'],
         request=RegisterSerializer,
         responses={
-            201: OpenApiResponse(description='User created successfully.'),
-            400: OpenApiResponse(description='Bad request — invalid data or passwords do not match.'),
-            429: OpenApiResponse(description='Too many requests — rate limit exceeded.'),
+            201: user_responses.RESPONSE_201_REGISTER,
+            400: user_responses.RESPONSE_400_REGISTER,
+            429: core_responses.RESPONSE_429,
         }
     )
     def post(self, request, *args, **kwargs):
