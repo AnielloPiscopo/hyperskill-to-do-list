@@ -6,10 +6,19 @@ interface ReadOnlyFields {
     updated_at: string
 }
 
+/**
+ * @package
+ */
 export interface BaseApiInterface extends ReadOnlyFields {
 }
 
 
-
+/**
+ * @package
+ */
 export type ApiPayload<T extends BaseApiInterface> = Omit<T, keyof ReadOnlyFields>
+
+/**
+ * @package
+ */
 export type SchemaComponents = components['schemas']
