@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { taskService } from '@/services/taskService'
 import type { Task, TaskPayload, PatchedTask } from '@/types'
+import { isAxiosError } from 'axios'
 
 export const useTaskStore = defineStore('tasks', () => {
     const tasks = ref<Task[]>([])
@@ -15,7 +16,11 @@ export const useTaskStore = defineStore('tasks', () => {
             const data = await taskService.getAll(params)
             tasks.value = data.results
         } catch (e) {
-            error.value = 'Errore nel caricamento dei task.'
+            if (isAxiosError(e) && e.response?.status === 404) {
+                tasks.value = []
+            } else {
+                error.value = 'Failed to load tasks.'
+            }
         } finally {
             loading.value = false
         }
