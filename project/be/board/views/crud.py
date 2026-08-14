@@ -1,16 +1,18 @@
 import logging
 from django.db import models
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
+from rest_framework.exceptions import ValidationError
 from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
+from board.constants.api import validation_msg
 from board.schema.api import payloads, responses as board_responses
 from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
@@ -21,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
+    request: Request
     queryset = Board.objects.all()
     serializer_class = BoardSerializer
     permission_classes = [IsAuthenticated]
@@ -33,6 +36,15 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         summary='List all boards',
         description='Returns all boards.',
         tags=['boards'],
+        parameters=[
+            OpenApiParameter(
+                name='is_archived',
+                type=OpenApiTypes.BOOL,
+                location='query',
+                description='Pass true to return archived boards instead of active ones.',
+                required=False,
+            )
+        ],
         examples=[payloads.BOARD_RESPONSE_EXAMPLE],
         request=None,
         responses={
@@ -71,7 +83,9 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         return response
 
     def get_user_queryset(self) -> models.QuerySet[Board]:
-        return Board.objects.filter(user=self.request.user, is_archived=False).order_by('title')
+        is_archived_param: str | None = self.request.query_params.get('is_archived')
+        is_archived: bool = is_archived_param.lower() == 'true' if is_archived_param is not None else False
+        return Board.objects.filter(user=self.request.user, is_archived=is_archived).order_by('title')
 
     def perform_create(self, serializer: BaseSerializer) -> None:
         serializer.save(user=self.request.user)
@@ -115,9 +129,9 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         request=BoardSerializer,
         responses={
             200: BoardSerializer,
-            400: OpenApiResponse(description='Bad request — invalid data.'),
-            403: OpenApiResponse(description='Not authorized or not authenticated.'),
-            404: OpenApiResponse(description='Board not found.'),
+            400: board_responses.RESPONSE_400_SINGLE_BOARD,
+            403: core_responses.RESPONSE_403,
+            404: board_responses.RESPONSE_404,
         }
     )
     def put(self, request: Request, *args, **kwargs) -> Response:
@@ -136,7 +150,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         examples=[payloads.BOARD_REQUEST_EXAMPLE, payloads.BOARD_RESPONSE_EXAMPLE],
         responses={
             200: BoardSerializer,
-            400: core_responses.RESPONSE_400,
+            400: board_responses.RESPONSE_400_SINGLE_BOARD,
             403: core_responses.RESPONSE_403,
             404: board_responses.RESPONSE_404,
         }
@@ -157,6 +171,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         request=None,
         responses={
             204: board_responses.RESPONSE_204_DELETED,
+            400: board_responses.RESPONSE_400_SINGLE_BOARD_DELETE,
             403: core_responses.RESPONSE_403,
             404: board_responses.RESPONSE_404,
         }
@@ -171,4 +186,14 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         return response
 
     def get_user_queryset(self) -> models.QuerySet[Board]:
-        return Board.objects.filter(user=self.request.user, is_archived=False)
+        return Board.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer: BaseSerializer) -> None:
+        if self.get_object().is_archived:
+            raise ValidationError({'detail': validation_msg.UPDATE_NOT_ALLOWED_IF_ARCHIVED})
+        serializer.save()
+
+    def perform_destroy(self, instance: Board) -> None:
+        if not instance.is_archived:
+            raise ValidationError({'detail': validation_msg.DELETE_NOT_ALLOWED_IF_ACTIVE})
+        instance.delete()
