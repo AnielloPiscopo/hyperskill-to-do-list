@@ -90,6 +90,20 @@ class TodoListViewTest(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.data['count'], 0)
 
+    def test_list_archived_tasks_with_filter(self):
+        Task.objects.create(
+            title='Archived task',
+            description='Desc',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user,
+            is_archived=True
+        )
+        response = self.client.get(self.url, {'is_archived': 'true'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Archived task')
+
     def test_list_excludes_other_user_tasks(self):
         other_user = User.objects.create_user(username='other', password='pass')
         Task.objects.create(
@@ -327,10 +341,29 @@ class TodoDetailViewTest(APITestCase):
         self.todo.refresh_from_db()
         self.assertEqual(self.todo.status, TaskStatus.DONE)
 
-    def test_delete_todo_as_author(self):
+    def test_delete_active_task_returns_400(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_archived_task_returns_204(self):
+        self.todo.is_archived = True
+        self.todo.save()
         response = self.client.delete(self.url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Task.objects.count(), 0)
+
+    def test_update_archived_task_returns_400(self):
+        self.todo.is_archived = True
+        self.todo.save()
+        response = self.client.put(self.url, {
+            'title': 'Updated task',
+            'description': 'Updated description',
+            'goal_set_date': '2024-01-01',
+            'set_to_complete': '2024-01-31',
+            'status': TaskStatus.TODO,
+            'user': self.user.pk,
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_update_todo_as_non_author_returns_404(self):
         self.client.force_authenticate(user=self.other_user)
