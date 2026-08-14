@@ -40,7 +40,10 @@ BOARD_DETAIL_RESPONSE_EXAMPLE = OpenApiExample(
                 'goal_set_date': '2024-01-01',
                 'set_to_complete': '2024-01-31',
                 'status': 'TODO',
+                'priority': 'ZERO',
                 'board': 1,
+                'created_at': '2024-01-01T00:00:00Z',
+                'updated_at': '2024-01-01T00:00:00Z',
             }
         ]
     },
