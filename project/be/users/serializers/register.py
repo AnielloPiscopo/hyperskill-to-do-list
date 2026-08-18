@@ -9,7 +9,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     `confirm_password` is a write-only field used only for client-side
     confirmation; it is stripped from validated data before the user is created.
     """
-
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(
         write_only=True,
         style={'input_type': 'password'},
@@ -24,6 +24,13 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'confirm_password']
+
+    def validate_email(self, email: str) -> str: # noqa
+        """Normalize the email and reject one already in use by another account."""
+        normalized_email: str = email.lower()
+        if User.objects.filter(email__iexact=normalized_email).exists():
+            raise serializers.ValidationError('This email is already in use.')
+        return normalized_email
 
     def validate(self, data):
         """Ensure the two password fields are identical."""

@@ -52,7 +52,7 @@ class ChangePasswordViewTest(APITestCase):
         data['old_password'] = 'wrongpass'
         response = self.client.post(self.url, data)
         self.assertIn('old_password', response.data)
-        self.assertEqual(response.data['old_password'], 'Wrong password.')
+        self.assertEqual(response.data['old_password'], ['Wrong password.'])
 
     # --- invalid serializer data ---
 

@@ -1,8 +1,10 @@
 import logging
+from django.contrib.auth.models import User
 from drf_spectacular.utils import extend_schema
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from core.utils.logs import LogHelper
@@ -16,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChangePasswordView(APIView):
+    request: Request
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -29,22 +32,22 @@ class ChangePasswordView(APIView):
             401: core_responses.RESPONSE_401,
         }
     )
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = ChangePasswordSerializer(data=request.data)
+        serializer: ChangePasswordSerializer = ChangePasswordSerializer(data=request.data)
         if not serializer.is_valid():
-            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response: Response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
                 f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.RESPONSE)}"
                 f" - status={response.status_code}, reason=invalid_serializer")
             return response
 
-        user = request.user
+        user: User = request.user
         if not user.check_password(serializer.validated_data['old_password']):
-            response = Response(
-                {'old_password': 'Wrong password.'},
+            response: Response = Response(
+                {'old_password': ['Wrong password.']},
                 status=status.HTTP_400_BAD_REQUEST
             )
             logger.info(
