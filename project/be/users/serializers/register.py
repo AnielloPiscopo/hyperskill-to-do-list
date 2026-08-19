@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from users.constants.api import validation_msg as user_msg
 
 __all__ = ['RegisterSerializer']
 
@@ -29,13 +30,13 @@ class RegisterSerializer(serializers.ModelSerializer):
         """Normalize the email and reject one already in use by another account."""
         normalized_email: str = email.lower()
         if User.objects.filter(email__iexact=normalized_email).exists():
-            raise serializers.ValidationError('This email is already in use.')
+            raise serializers.ValidationError(user_msg.EMAIL_ALREADY_IN_USE)
         return normalized_email
 
     def validate(self, data):
         """Ensure the two password fields are identical."""
         if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError('Passwords must match')
+            raise serializers.ValidationError(user_msg.PASSWORDS_MUST_MATCH)
         return data
 
     def create(self, validated_data):

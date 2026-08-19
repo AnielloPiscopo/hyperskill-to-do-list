@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from core.utils.logs import LogHelper
 from core.schema.api import responses as core_responses
+from users.constants.api import validation_msg as user_msg
 from users.schema.api import responses as user_responses
 from users.serializers import ChangePasswordSerializer
 
@@ -47,7 +48,7 @@ class ChangePasswordView(APIView):
         user: User = request.user
         if not user.check_password(serializer.validated_data['old_password']):
             response: Response = Response(
-                {'old_password': ['Wrong password.']},
+                {'old_password': [user_msg.WRONG_PASSWORD]},
                 status=status.HTTP_400_BAD_REQUEST
             )
             logger.info(
