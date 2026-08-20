@@ -35,9 +35,11 @@ class LoginView(APIView):
     def post(self, request):
         logger.info(
             f"{LogHelper.build_prefix('users', 'LoginView', 'POST', LogHelper.Direction.REQUEST)} - received")
+        serializer = LoginRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        username = request.data.get('username')
-        password = request.data.get('password')
+        username = serializer.validated_data['username']
+        password = serializer.validated_data['password']
         user = authenticate(username=username, password=password)
         if not user:
             response = Response({'detail': 'Invalid credentials.'}, status=status.HTTP_400_BAD_REQUEST)

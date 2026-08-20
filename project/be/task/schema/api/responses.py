@@ -1,6 +1,8 @@
 from drf_spectacular.utils import OpenApiResponse
 from core.serializers import SimpleMessageResponseSerializer
 
+RESPONSE_400_SINGLE_TASK = OpenApiResponse(description='Bad request — invalid data, or task is archived.')
+RESPONSE_400_SINGLE_TASK_DELETE = OpenApiResponse(description='Bad request — task must be archived before deletion.')
 RESPONSE_404 = OpenApiResponse(description='Task not found.')
 RESPONSE_200_ARCHIVED = OpenApiResponse(response=SimpleMessageResponseSerializer,
                                         description='Task archived successfully.')

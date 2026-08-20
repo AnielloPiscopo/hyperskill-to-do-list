@@ -1,17 +1,19 @@
 import logging
 from django.db import models
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.serializers import BaseSerializer
+from rest_framework.exceptions import ValidationError
 from django_filters.rest_framework import DjangoFilterBackend
 from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
+from task.constants.api import validation_msg
 from task.schema.api import payloads, responses as task_responses
 from task.models import Task
 from task.serializers import TaskSerializer
@@ -23,6 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
+    request: Request
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated]
@@ -36,6 +39,15 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         summary='List all tasks',
         description='Returns all tasks ordered by completion status, deadline and creation date.',
         tags=['tasks'],
+        parameters=[
+            OpenApiParameter(
+                name='is_archived',
+                type=OpenApiTypes.BOOL,
+                location='query',
+                description='Pass true to return archived tasks instead of active ones.',
+                required=False,
+            )
+        ],
         examples=[payloads.TASK_RESPONSE_EXAMPLE],
         request=None,
         responses={
@@ -78,7 +90,11 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
         # urgency: active high-priority tasks appear first, DONE tasks last.
         # The specific integer values (0–7, 100) are arbitrary rank slots;
         # only their relative order matters.
-        return Task.objects.filter(user=self.request.user, is_archived=False).annotate(
+
+        is_archived_param: str | None = self.request.query_params.get('is_archived')
+        is_archived: bool = is_archived_param.lower() == 'true' if is_archived_param is not None else False
+
+        return Task.objects.filter(user=self.request.user, is_archived=is_archived).annotate(
             order=models.Case(
                 models.When(status=TaskStatus.DONE, then=models.Value(100)),  # DONE always sinks to the bottom
                 models.When(priority=TaskPriority.HIGH, status=TaskStatus.IN_PROGRESS, then=models.Value(0)),
@@ -98,6 +114,7 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
 
 
 class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    request: Request
     queryset = Task.objects.all()
     serializer_class = TaskSerializer
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
@@ -131,7 +148,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         request=TaskSerializer,
         responses={
             200: TaskSerializer,
-            400: core_responses.RESPONSE_400,
+            400: task_responses.RESPONSE_400_SINGLE_TASK,
             403: core_responses.RESPONSE_403,
             404: task_responses.RESPONSE_404,
         }
@@ -152,7 +169,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         examples=[payloads.TASK_REQUEST_EXAMPLE, payloads.TASK_RESPONSE_EXAMPLE],
         responses={
             200: TaskSerializer,
-            400: core_responses.RESPONSE_400,
+            400: task_responses.RESPONSE_400_SINGLE_TASK,
             403: core_responses.RESPONSE_403,
             404: task_responses.RESPONSE_404,
         }
@@ -173,6 +190,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         request=None,
         responses={
             204: task_responses.RESPONSE_204_DELETED,
+            400: task_responses.RESPONSE_400_SINGLE_TASK_DELETE,
             403: core_responses.RESPONSE_403,
             404: task_responses.RESPONSE_404,
         }
@@ -187,4 +205,14 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
         return response
 
     def get_user_queryset(self) -> models.QuerySet[Task]:
-        return Task.objects.filter(user=self.request.user, is_archived=False)
+        return Task.objects.filter(user=self.request.user)
+
+    def perform_update(self, serializer: BaseSerializer) -> None:
+        if self.get_object().is_archived:
+            raise ValidationError({'detail': validation_msg.UPDATE_NOT_ALLOWED_IF_ARCHIVED})
+        serializer.save()
+
+    def perform_destroy(self, instance: Task) -> None:
+        if not instance.is_archived:
+            raise ValidationError({'detail': validation_msg.DELETE_NOT_ALLOWED_IF_ACTIVE})
+        instance.delete()

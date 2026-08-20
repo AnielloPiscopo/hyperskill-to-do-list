@@ -1,6 +1,8 @@
 from drf_spectacular.utils import OpenApiResponse
 from core.serializers import SimpleMessageResponseSerializer
 
+RESPONSE_400_SINGLE_BOARD = OpenApiResponse(description='Bad request — invalid data, or board is archived.')
+RESPONSE_400_SINGLE_BOARD_DELETE = OpenApiResponse(description='Bad request — board must be archived before deletion.')
 RESPONSE_404 = OpenApiResponse(description='Board not found.')
 RESPONSE_200_ARCHIVED = OpenApiResponse(response=SimpleMessageResponseSerializer,
                                         description='Board archived successfully.')
