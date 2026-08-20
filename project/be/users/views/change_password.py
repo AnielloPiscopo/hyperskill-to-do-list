@@ -62,7 +62,7 @@ class ChangePasswordView(APIView):
         # with the new password; avoids stale tokens remaining valid after a
         # password change.
         Token.objects.filter(user=user).delete()
-        response = Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
