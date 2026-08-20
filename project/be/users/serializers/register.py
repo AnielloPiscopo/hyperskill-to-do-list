@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from users.constants.api import validation_msg as user_msg
 
 __all__ = ['RegisterSerializer']
 
@@ -9,7 +10,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     `confirm_password` is a write-only field used only for client-side
     confirmation; it is stripped from validated data before the user is created.
     """
-
+    email = serializers.EmailField(required=True)
     password = serializers.CharField(
         write_only=True,
         style={'input_type': 'password'},
@@ -25,10 +26,17 @@ class RegisterSerializer(serializers.ModelSerializer):
         model = User
         fields = ['username', 'email', 'password', 'confirm_password']
 
+    def validate_email(self, email: str) -> str: # noqa
+        """Normalize the email and reject one already in use by another account."""
+        normalized_email: str = email.lower()
+        if User.objects.filter(email__iexact=normalized_email).exists():
+            raise serializers.ValidationError(user_msg.EMAIL_ALREADY_IN_USE)
+        return normalized_email
+
     def validate(self, data):
         """Ensure the two password fields are identical."""
         if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError('Passwords must match')
+            raise serializers.ValidationError(user_msg.PASSWORDS_MUST_MATCH)
         return data
 
     def create(self, validated_data):

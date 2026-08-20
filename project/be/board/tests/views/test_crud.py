@@ -44,6 +44,15 @@ class BoardListViewTest(APITestCase):
         response = self.client.get('/boards/')
         self.assertEqual(response.data['count'], 0)
 
+    def test_list_archived_boards_with_filter(self):
+        self.board.is_archived = True
+        self.board.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get('/boards/', {'is_archived': 'true'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['count'], 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Board 1')
+
     def test_list_ordered_by_title(self):
         Board.objects.create(title='Alpha', user=self.user)
         Board.objects.create(title='Zeta', user=self.user)
@@ -138,12 +147,12 @@ class BoardDetailViewTest(APITestCase):
         response = self.client.get(self._url())
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
-    def test_retrieve_archived_board_returns_404(self):
+    def test_retrieve_archived_board_returns_200(self):
         self.board.is_archived = True
         self.board.save()
         self.client.force_authenticate(user=self.user)
         response = self.client.get(self._url())
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     # --- PUT ---
 
@@ -177,12 +186,21 @@ class BoardDetailViewTest(APITestCase):
 
     # --- DELETE ---
 
-    def test_delete_author_returns_204(self):
+    def test_delete_active_board_returns_400(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.delete(self._url())
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_delete_archived_board_returns_204(self):
+        self.board.is_archived = True
+        self.board.save()
         self.client.force_authenticate(user=self.user)
         response = self.client.delete(self._url())
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_delete_removes_board(self):
+    def test_delete_archived_board_removes_it(self):
+        self.board.is_archived = True
+        self.board.save()
         self.client.force_authenticate(user=self.user)
         self.client.delete(self._url())
         self.assertFalse(Board.objects.filter(pk=self.board.pk).exists())
@@ -191,3 +209,17 @@ class BoardDetailViewTest(APITestCase):
         self.client.force_authenticate(user=self.other_user)
         response = self.client.delete(self._url())
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_archived_board_returns_400(self):
+        self.board.is_archived = True
+        self.board.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.put(self._url(), {'title': 'Updated'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_partial_update_archived_board_returns_400(self):
+        self.board.is_archived = True
+        self.board.save()
+        self.client.force_authenticate(user=self.user)
+        response = self.client.patch(self._url(), {'title': 'Patched'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

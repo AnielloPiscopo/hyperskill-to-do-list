@@ -32,6 +32,20 @@ class LoginViewTest(APITestCase):
         response = self.client.post(self.url, {'username': 'testuser', 'password': 'testpass123'})
         self.assertEqual(response.data['token'], existing_token.key)
 
+    # --- missing fields ---
+
+    def test_login_missing_fields_returns_400(self):
+        response = self.client.post(self.url, {})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_login_missing_password_returns_400(self):
+        response = self.client.post(self.url, {'username': 'testuser'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_login_missing_username_returns_400(self):
+        response = self.client.post(self.url, {'password': 'testpass123'})
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     # --- invalid credentials ---
 
     def test_login_wrong_password_returns_400(self):

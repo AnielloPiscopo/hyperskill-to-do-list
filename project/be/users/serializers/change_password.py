@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from users.constants.api import validation_msg as user_msg
 
 __all__ = ['ChangePasswordSerializer']
 
@@ -28,5 +29,5 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate(self, data):
         """Ensure the two new-password fields are identical."""
         if data['new_password'] != data['confirm_new_password']:
-            raise serializers.ValidationError('Passwords must match.')
+            raise serializers.ValidationError(user_msg.PASSWORDS_MUST_MATCH)
         return data
