@@ -33,10 +33,6 @@ class BoardSerializerTest(TestCase):
         serializer = BoardSerializer(self.board)
         self.assertNotIn('user', serializer.data)
 
-    def test_is_archived_field_excluded(self):
-        serializer = BoardSerializer(self.board)
-        self.assertNotIn('is_archived', serializer.data)
-
     # --- read-only fields (inherited from BaseModelSerializer) ---
 
     def test_id_is_read_only(self):
@@ -168,7 +164,3 @@ class BoardDetailSerializerTest(TestCase):
     def test_user_field_excluded(self):
         serializer = BoardDetailSerializer(self.board)
         self.assertNotIn('user', serializer.data)
-
-    def test_is_archived_field_excluded(self):
-        serializer = BoardDetailSerializer(self.board)
-        self.assertNotIn('is_archived', serializer.data)

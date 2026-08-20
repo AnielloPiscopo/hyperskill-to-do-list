@@ -23,7 +23,7 @@ class BoardSerializer(BaseModelSerializer):
 
     class Meta(BaseModelSerializer.Meta):
         model = Board
-        exclude = ['user', 'is_archived']
+        exclude = ['user']
 
     def validate_color(self, color: str) -> str:  # noqa: field-level validator — DRF calls it via naming convention
         """Validate that the color is a proper 6-digit hex string and normalise it to uppercase."""
