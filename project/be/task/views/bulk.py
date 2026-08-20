@@ -10,6 +10,7 @@ from core.utils.logs import LogHelper
 from task.schema.api import responses as task_responses
 from task.serializers import TaskMoveSerializer
 from task.services import move_tasks
+from board.models import Board
 
 __all__ = ['TaskMoveView']
 
@@ -35,19 +36,19 @@ class TaskMoveView(APIView):
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskMoveView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = TaskMoveSerializer(data=request.data, context={'request': request})
+        serializer: TaskMoveSerializer = TaskMoveSerializer(data=request.data, context={'request': request})
         if not serializer.is_valid():
-            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response: Response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
                 f"{LogHelper.build_prefix('task', 'TaskMoveView', 'POST', LogHelper.Direction.RESPONSE)}"
                 f" - status={response.status_code}, reason=invalid_serializer")
             return response
 
         ids: list[int] = serializer.validated_data.get('ids')
-        board = serializer.validated_data.get('board')
+        board: Board = serializer.validated_data.get('board')
         move_tasks(user=request.user, ids=ids, board=board)
 
-        response = Response({'detail': 'Tasks moved.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Tasks moved.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskMoveView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")

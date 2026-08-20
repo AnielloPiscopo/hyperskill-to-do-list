@@ -58,7 +58,7 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     def get(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskListView', 'GET', LogHelper.Direction.REQUEST)} - received")
-        response = super().get(request, *args, **kwargs)
+        response: Response = super().get(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskListView', 'GET',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -79,7 +79,7 @@ class TaskListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskListView', 'POST', LogHelper.Direction.REQUEST)} - received")
-        response = super().post(request, *args, **kwargs)
+        response: Response = super().post(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskListView', 'POST',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -134,7 +134,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
     def get(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
-        response = super().get(request, *args, **kwargs)
+        response: Response = super().get(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'GET',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -156,7 +156,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
     def put(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PUT', LogHelper.Direction.REQUEST)} - received")
-        response = super().put(request, *args, **kwargs)
+        response: Response = super().put(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PUT',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -177,7 +177,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
     def patch(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PATCH', LogHelper.Direction.REQUEST)} - received")
-        response = super().patch(request, *args, **kwargs)
+        response: Response = super().patch(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'PATCH',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -198,7 +198,7 @@ class TaskDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIV
     def delete(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'DELETE', LogHelper.Direction.REQUEST)} - received")
-        response = super().delete(request, *args, **kwargs)
+        response: Response = super().delete(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskDetailView', 'DELETE',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")

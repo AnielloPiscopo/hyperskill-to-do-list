@@ -2,6 +2,8 @@ import logging
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
+from rest_framework.request import Request
+from rest_framework.response import Response
 from users.serializers import RegisterSerializer
 from core.utils.logs import LogHelper
 from core.throttling import LoginRateThrottle
@@ -28,10 +30,10 @@ class RegisterView(generics.CreateAPIView):
             429: core_responses.RESPONSE_429,
         }
     )
-    def post(self, request, *args, **kwargs):
+    def post(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('users', 'RegisterView', 'POST', LogHelper.Direction.REQUEST)} - received")
-        response = super().post(request, *args, **kwargs)
+        response: Response = super().post(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('users', 'RegisterView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")

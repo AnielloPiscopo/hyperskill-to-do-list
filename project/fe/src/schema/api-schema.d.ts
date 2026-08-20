@@ -586,8 +586,8 @@ export interface components {
         Register: {
             /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
             username: string;
-            /** Email address */
-            email?: string;
+            /** Format: email */
+            email: string;
             /** @description Password for the new account */
             password: string;
             /** @description Repeat the password to confirm */
@@ -852,6 +852,8 @@ export interface operations {
     boards_list: {
         parameters: {
             query?: {
+                /** @description Pass true to return archived boards instead of active ones. */
+                is_archived?: boolean;
                 /** @description Which field to use when ordering the results. */
                 ordering?: string;
                 /** @description A page number within the paginated result set. */
@@ -981,7 +983,7 @@ export interface operations {
                     "application/json": components["schemas"]["Board"];
                 };
             };
-            /** @description Bad request — invalid data. */
+            /** @description Bad request — invalid data, or board is archived. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1017,6 +1019,13 @@ export interface operations {
         responses: {
             /** @description Board deleted successfully. */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request — board must be archived before deletion. */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1063,7 +1072,7 @@ export interface operations {
                     "application/json": components["schemas"]["Board"];
                 };
             };
-            /** @description Bad request — invalid data. */
+            /** @description Bad request — invalid data, or board is archived. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1248,6 +1257,8 @@ export interface operations {
         parameters: {
             query?: {
                 board?: number;
+                /** @description Pass true to return archived tasks instead of active ones. */
+                is_archived?: boolean;
                 /** @description Which field to use when ordering the results. */
                 ordering?: string;
                 /** @description A page number within the paginated result set. */
@@ -1394,7 +1405,7 @@ export interface operations {
                     "application/json": components["schemas"]["Task"];
                 };
             };
-            /** @description Bad request — invalid data. */
+            /** @description Bad request — invalid data, or task is archived. */
             400: {
                 headers: {
                     [name: string]: unknown;
@@ -1430,6 +1441,13 @@ export interface operations {
         responses: {
             /** @description Task deleted successfully. */
             204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad request — task must be archived before deletion. */
+            400: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1476,7 +1494,7 @@ export interface operations {
                     "application/json": components["schemas"]["Task"];
                 };
             };
-            /** @description Bad request — invalid data. */
+            /** @description Bad request — invalid data, or task is archived. */
             400: {
                 headers: {
                     [name: string]: unknown;

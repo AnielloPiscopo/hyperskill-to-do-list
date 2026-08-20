@@ -55,7 +55,7 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     def get(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardListView', 'GET', LogHelper.Direction.REQUEST)} - received")
-        response = super().get(request, *args, **kwargs)
+        response: Response = super().get(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardListView', 'GET', LogHelper.Direction.RESPONSE)} "
             f" - status={response.status_code}")
@@ -76,7 +76,7 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
     def post(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardListView', 'POST', LogHelper.Direction.REQUEST)} - received")
-        response = super().post(request, *args, **kwargs)
+        response: Response = super().post(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardListView', 'POST', LogHelper.Direction.RESPONSE)} "
             f" - status={response.status_code}")
@@ -115,7 +115,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
     def get(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
-        response = super().get(request, *args, **kwargs)
+        response: Response = super().get(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
@@ -137,7 +137,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
     def put(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PUT', LogHelper.Direction.REQUEST)} - received")
-        response = super().put(request, *args, **kwargs)
+        response: Response = super().put(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PUT', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
@@ -158,7 +158,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
     def patch(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PATCH', LogHelper.Direction.REQUEST)} - received")
-        response = super().patch(request, *args, **kwargs)
+        response: Response = super().patch(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'PATCH', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
@@ -179,7 +179,7 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
     def delete(self, request: Request, *args, **kwargs) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'DELETE', LogHelper.Direction.REQUEST)} - received")
-        response = super().delete(request, *args, **kwargs)
+        response: Response = super().delete(request, *args, **kwargs)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardDetailView', 'DELETE', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
