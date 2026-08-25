@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { boardService } from '@/services/boardService'
 import type { Board, BoardDetail, BoardPayload, PatchedBoard } from '@/types'
+import { isAxiosError } from 'axios'
 
 export const useBoardStore = defineStore('boards', () => {
     const boards = ref<Board[]>([])
@@ -16,7 +17,11 @@ export const useBoardStore = defineStore('boards', () => {
             const data = await boardService.getAll(params)
             boards.value = data.results
         } catch (e) {
-            error.value = 'Errore nel caricamento delle board.'
+            if (isAxiosError(e) && e.response?.status === 404) {
+                boards.value = []
+            } else {
+                error.value = 'Failded to load boards.'
+            }
         } finally {
             loading.value = false
         }
@@ -28,7 +33,7 @@ export const useBoardStore = defineStore('boards', () => {
         try {
             currentBoard.value = await boardService.getOne(id)
         } catch (e) {
-            error.value = 'Errore nel caricamento della board.'
+            error.value = 'Failded to load boards.'
         } finally {
             loading.value = false
         }

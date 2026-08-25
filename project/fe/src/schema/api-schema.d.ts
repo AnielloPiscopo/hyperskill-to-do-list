@@ -408,6 +408,7 @@ export interface components {
          */
         Board: {
             readonly id: number;
+            is_archived?: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -423,6 +424,7 @@ export interface components {
         BoardDetail: {
             readonly id: number;
             readonly tasks: components["schemas"]["Task"][];
+            is_archived?: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -512,6 +514,7 @@ export interface components {
          */
         PatchedBoard: {
             readonly id?: number;
+            is_archived?: boolean;
             /** Format: date-time */
             readonly created_at?: string;
             /** Format: date-time */
