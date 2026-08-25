@@ -3,7 +3,7 @@ import { TASK_ENDPOINTS } from '@/constants/endpoints'
 import type { Task, PatchedTask, TaskPayload, TaskMove, PaginatedTaskList, SimpleMessageResponse, BulkIds } from '@/types'
 
 export const taskService = {
-    async getAll(params?: Record<string, string | number>): Promise<PaginatedTaskList> {
+    async getAll(params?: Record<string, string | number | boolean>): Promise<PaginatedTaskList> {
         const response = await api.get<PaginatedTaskList>(TASK_ENDPOINTS.list, { params })
         return response.data
     },

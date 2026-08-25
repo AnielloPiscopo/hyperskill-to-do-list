@@ -3,7 +3,7 @@ import { BOARD_ENDPOINTS } from '@/constants/endpoints'
 import type { Board, BoardDetail, PatchedBoard, BoardPayload, PaginatedBoardList, SimpleMessageResponse, BulkIds } from '@/types'
 
 export const boardService = {
-    async getAll(params?: Record<string, string | number>): Promise<PaginatedBoardList> {
+    async getAll(params?: Record<string, string | number | boolean>): Promise<PaginatedBoardList> {
         const response = await api.get<PaginatedBoardList>(BOARD_ENDPOINTS.list, { params })
         return response.data
     },

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { authService } from '@/services/authService'
 import { useAuthStore } from '@/stores/authStore'
 import type { Info } from '@/types'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const info = ref<Info | null>(null)
 
@@ -24,29 +26,47 @@ async function handleChangePassword() {
             new_password: newPassword.value,
             confirm_new_password: confirmNewPassword.value
         })
-        message.value = 'Password cambiata con successo.'
-        oldPassword.value = ''
-        newPassword.value = ''
-        confirmNewPassword.value = ''
+        // Backend invalidates the token on password change, so the user must log in again
+        authStore.clearToken()
+        router.push({ name: 'login' })
     } catch (e) {
-        message.value = 'Errore nel cambio password.'
+        message.value = 'Failed to change password.'
     }
 }
 </script>
 
 <template>
-    <main>
-        <h1>Profile</h1>
-        <p v-if="info">{{ info.username }} — {{ info.email }}</p>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <h1 class="h2 mb-4">Profile</h1>
 
-        <form @submit.prevent="handleChangePassword">
-            <input v-model="oldPassword" type="password" placeholder="Current password" required />
-            <input v-model="newPassword" type="password" placeholder="New password" required />
-            <input v-model="confirmNewPassword" type="password" placeholder="Confirm new password" required />
-            <button type="submit">Change password</button>
-        </form>
-        <p v-if="message">{{ message }}</p>
+            <div v-if="info" class="card p-4 mb-4">
+                <p class="mb-1 text-muted small">Signed in as</p>
+                <p class="h5 mb-0">{{ info.username }}</p>
+                <p class="text-muted mb-0">{{ info.email }}</p>
+            </div>
 
-        <button @click="authStore.logout()">Logout</button>
-    </main>
+            <div class="card p-4">
+                <h2 class="h5 mb-3">Change password</h2>
+                <form @submit.prevent="handleChangePassword">
+                    <div class="mb-3">
+                        <input v-model="oldPassword" type="password" class="form-control" placeholder="Current password"
+                            required />
+                    </div>
+                    <div class="mb-3">
+                        <input v-model="newPassword" type="password" class="form-control" placeholder="New password"
+                            required />
+                    </div>
+                    <div class="mb-3">
+                        <input v-model="confirmNewPassword" type="password" class="form-control"
+                            placeholder="Confirm new password" required />
+                    </div>
+                    <div v-if="message" class="alert alert-warning py-2">{{ message }}</div>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Change password</button>
+                </form>
+            </div>
+
+            <button class="btn btn-outline-secondary rounded-pill mt-4" @click="authStore.logout()">Logout</button>
+        </div>
+    </div>
 </template>
