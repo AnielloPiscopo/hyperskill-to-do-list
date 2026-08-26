@@ -40,7 +40,7 @@ async function handleSubmit() {
                         <input v-model="password" type="password" class="form-control" required />
                     </div>
                     <div v-if="error" class="alert alert-danger py-2">{{ error }}</div>
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill" :disabled="loading">
+                    <button type="submit" class="btn btn-primary my-btn-lift w-100 rounded-pill" :disabled="loading">
                         {{ loading ? 'Signing in…' : 'Sign in' }}
                     </button>
                 </form>

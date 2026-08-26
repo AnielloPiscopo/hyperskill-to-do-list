@@ -17,7 +17,6 @@ let modalInstance: Modal | null = null
 onMounted(() => {
     if (modalRef.value) {
         modalInstance = new Modal(modalRef.value)
-        // Keep Vue state in sync when the user closes via Esc, backdrop, or the X button
         modalRef.value.addEventListener('hidden.bs.modal', () => emit('close'))
     }
 })
@@ -54,10 +53,10 @@ async function handleRestore() {
                 <div class="modal-body">
                     <p v-if="board" class="text-muted small mb-3">Board: {{ board.title }}</p>
                     <p>{{ task.description }}</p>
-                    <p class="text-mono text-muted mb-2">Deadline: {{ task.set_to_complete }}</p>
+                    <p class="my-text-mono text-muted mb-2">Deadline: {{ task.set_to_complete }}</p>
                     <span class="badge rounded-pill text-bg-light border me-2">{{ task.status }}</span>
                     <span class="badge rounded-pill"
-                        :class="`badge-priority-${(task.priority ?? 'zero').toLowerCase()}`">
+                        :class="`my-badge-priority-${(task.priority ?? 'zero').toLowerCase()}`">
                         {{ task.priority }}
                     </span>
 
@@ -69,8 +68,8 @@ async function handleRestore() {
                     <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
                         Close
                     </button>
-                    <button type="button" class="btn btn-primary rounded-pill" :disabled="board?.is_archived"
-                        @click="handleRestore">
+                    <button type="button" class="btn btn-primary my-btn-lift rounded-pill"
+                        :disabled="board?.is_archived" @click="handleRestore">
                         Restore
                     </button>
                 </div>

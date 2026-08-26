@@ -62,7 +62,7 @@ async function handleChangePassword() {
                             placeholder="Confirm new password" required />
                     </div>
                     <div v-if="message" class="alert alert-warning py-2">{{ message }}</div>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4">Change password</button>
+                    <button type="submit" class="btn btn-primary my-btn-lift rounded-pill px-4">Change password</button>
                 </form>
             </div>
 

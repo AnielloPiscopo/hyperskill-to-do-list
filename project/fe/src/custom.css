@@ -27,83 +27,71 @@
 
 h1,
 h2,
-h3,
-.navbar-brand {
+h3 {
   font-family: 'Baloo 2', system-ui, sans-serif;
   font-weight: 600;
   color: var(--ink);
 }
 
-.text-mono {
+.my-navbar-brand {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-weight: 700;
+  color: var(--coral) !important;
+}
+
+.my-text-mono {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85em;
 }
 
-.btn-primary {
-  background-color: var(--coral);
-  border-color: var(--coral);
-  font-weight: 600;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
-}
-.btn-primary:hover {
-  background-color: var(--coral-dark);
-  border-color: var(--coral-dark);
+.my-btn-lift:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 14px rgba(255, 107, 74, 0.35);
 }
 
-.btn-outline-secondary {
-  border-color: var(--paper-border);
-  color: var(--ink);
-}
-.btn-outline-secondary:hover {
-  background-color: var(--teal);
-  border-color: var(--teal);
-  color: #fff;
+.my-btn-danger-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.25);
 }
 
-.card {
-  border: 1px solid var(--paper-border);
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease;
+.my-btn-outline-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(31, 166, 160, 0.25);
 }
 
-.board-card {
+.my-board-card {
   border-top: 5px solid var(--board-color, var(--teal));
   cursor: pointer;
 }
-.board-card:hover {
+.my-board-card:hover {
   transform: rotate(-0.6deg) translateY(-4px);
   box-shadow: 0 10px 22px rgba(43, 35, 32, 0.12);
 }
 
-.task-row {
+.my-task-row {
   border-left: 4px solid var(--priority-color, var(--paper-border));
   transition:
     background-color 0.15s ease,
     transform 0.15s ease;
 }
-.task-row:hover {
+.my-task-row:hover {
   background-color: rgba(31, 166, 160, 0.06);
   transform: translateX(3px);
 }
 
-.badge-priority-high {
+.my-badge-priority-high {
   background-color: var(--coral);
   color: #fff;
 }
-.badge-priority-medium {
+.my-badge-priority-medium {
   background-color: var(--sun);
   color: var(--ink);
 }
-.badge-priority-low {
+.my-badge-priority-low {
   background-color: var(--teal);
   color: #fff;
 }
-.badge-priority-zero {
+.my-badge-priority-zero {
   background-color: var(--paper-border);
   color: var(--ink);
 }
@@ -113,16 +101,17 @@ h3,
   color: var(--coral) !important;
 }
 
-.empty-state {
+.my-empty-state {
   border: 2px dashed var(--paper-border);
   border-radius: var(--bs-border-radius-lg);
   color: #8a7f6d;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn-primary,
-  .board-card,
-  .task-row {
+  .my-btn-lift,
+  .my-btn-danger-lift,
+  .my-board-card,
+  .my-task-row {
     transition: none !important;
   }
 }
