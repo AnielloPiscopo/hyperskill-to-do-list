@@ -67,3 +67,20 @@ async function handleFormClosed() {
         <BoardFormModal :open="formOpen" :board="editingBoard" @close="handleFormClosed" />
     </div>
 </template>
+<style scoped>
+.my-board-card {
+    border-top: 5px solid var(--board-color, var(--teal));
+    cursor: pointer;
+}
+
+.my-board-card:hover {
+    transform: rotate(-0.6deg) translateY(-4px);
+    box-shadow: 0 10px 22px rgba(43, 35, 32, 0.12);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .my-board-card {
+        transition: none !important;
+    }
+}
+</style>

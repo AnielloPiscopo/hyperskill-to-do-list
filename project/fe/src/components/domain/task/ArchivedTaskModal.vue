@@ -77,3 +77,24 @@ async function handleRestore() {
         </div>
     </div>
 </template>
+<style scoped>
+.my-badge-priority-high {
+    background-color: var(--coral);
+    color: #fff;
+}
+
+.my-badge-priority-medium {
+    background-color: var(--sun);
+    color: var(--ink);
+}
+
+.my-badge-priority-low {
+    background-color: var(--teal);
+    color: #fff;
+}
+
+.my-badge-priority-zero {
+    background-color: var(--paper-border);
+    color: var(--ink);
+}
+</style>

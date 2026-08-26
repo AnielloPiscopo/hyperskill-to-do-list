@@ -35,3 +35,10 @@ const authStore = useAuthStore()
         </nav>
     </header>
 </template>
+<style scoped>
+.my-navbar-brand {
+    font-family: 'Baloo 2', system-ui, sans-serif;
+    font-weight: 700;
+    color: var(--coral) !important;
+}
+</style>

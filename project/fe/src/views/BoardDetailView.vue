@@ -89,3 +89,22 @@ async function handleArchiveTask(taskId: number) {
         </div>
     </div>
 </template>
+<style scoped>
+.my-task-row {
+    border-left: 4px solid var(--priority-color, var(--paper-border));
+    transition:
+        background-color 0.15s ease,
+        transform 0.15s ease;
+}
+
+.my-task-row:hover {
+    background-color: rgba(31, 166, 160, 0.06);
+    transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .my-task-row {
+        transition: none !important;
+    }
+}
+</style>

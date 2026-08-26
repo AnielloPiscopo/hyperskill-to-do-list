@@ -33,12 +33,6 @@ h3 {
   color: var(--ink);
 }
 
-.my-navbar-brand {
-  font-family: 'Baloo 2', system-ui, sans-serif;
-  font-weight: 700;
-  color: var(--coral) !important;
-}
-
 .my-text-mono {
   font-family: 'JetBrains Mono', monospace;
   font-size: 0.85em;
@@ -59,48 +53,6 @@ h3 {
   box-shadow: 0 4px 10px rgba(31, 166, 160, 0.25);
 }
 
-.my-board-card {
-  border-top: 5px solid var(--board-color, var(--teal));
-  cursor: pointer;
-}
-.my-board-card:hover {
-  transform: rotate(-0.6deg) translateY(-4px);
-  box-shadow: 0 10px 22px rgba(43, 35, 32, 0.12);
-}
-
-.my-task-row {
-  border-left: 4px solid var(--priority-color, var(--paper-border));
-  transition:
-    background-color 0.15s ease,
-    transform 0.15s ease;
-}
-.my-task-row:hover {
-  background-color: rgba(31, 166, 160, 0.06);
-  transform: translateX(3px);
-}
-
-.my-badge-priority-high {
-  background-color: var(--coral);
-  color: #fff;
-}
-.my-badge-priority-medium {
-  background-color: var(--sun);
-  color: var(--ink);
-}
-.my-badge-priority-low {
-  background-color: var(--teal);
-  color: #fff;
-}
-.my-badge-priority-zero {
-  background-color: var(--paper-border);
-  color: var(--ink);
-}
-
-.navbar-brand {
-  font-weight: 700;
-  color: var(--coral) !important;
-}
-
 .my-empty-state {
   border: 2px dashed var(--paper-border);
   border-radius: var(--bs-border-radius-lg);
@@ -109,9 +61,8 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .my-btn-lift,
-  .my-btn-danger-lift,
-  .my-board-card,
-  .my-task-row {
+  .my-btn-outline-lift,
+  .my-btn-danger-lift {
     transition: none !important;
   }
 }
