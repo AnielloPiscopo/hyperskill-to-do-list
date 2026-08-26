@@ -53,7 +53,8 @@ async function handleRestore() {
                 <div class="modal-body">
                     <p v-if="board" class="text-muted small mb-3">Board: {{ board.title }}</p>
                     <p>{{ task.description }}</p>
-                    <p class="my-text-mono text-muted mb-2">Deadline: {{ task.set_to_complete }}</p>
+                    <time :datetime="task.set_to_complete" class="my-text-mono text-muted mb-2">Deadline: {{
+                        task.set_to_complete }}</time>
                     <span class="badge rounded-pill text-bg-light border me-2">{{ task.status }}</span>
                     <span class="badge rounded-pill"
                         :class="`my-badge-priority-${(task.priority ?? 'zero').toLowerCase()}`">
@@ -68,8 +69,8 @@ async function handleRestore() {
                     <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
                         Close
                     </button>
-                    <button type="button" class="btn btn-primary my-btn-lift rounded-pill"
-                        :disabled="board?.is_archived" @click="handleRestore">
+                    <button v-if="!board?.is_archived" type="button" class="btn btn-primary my-btn-lift rounded-pill"
+                        @click="handleRestore">
                         Restore
                     </button>
                 </div>

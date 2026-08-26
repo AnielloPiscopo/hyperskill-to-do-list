@@ -3,6 +3,8 @@ import { onMounted, ref } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 import { useBoardStore } from '@/stores/boardStore'
 import ArchivedTaskModal from '@/components/domain/task/ArchivedTaskModal.vue'
+import TaskItem from '@/components/domain/task/TaskItem.vue'
+import BoardCard from '@/components/domain/board/BoardCard.vue'
 import type { Task } from '@/types'
 
 const taskStore = useTaskStore()
@@ -24,35 +26,29 @@ async function handleRestored() {
 </script>
 
 <template>
-    <div>
-        <h1 class="h2 mb-4">Trash</h1>
+    <h1 class="h2 mb-4">Trash</h1>
 
+    <section class="mb-4">
         <h2 class="h5 text-muted mb-2">Archived boards</h2>
-        <div v-if="boardStore.boards.length === 0" class="my-empty-state p-4 text-center mb-4">
+        <div v-if="boardStore.boards.length === 0" class="my-empty-state p-4 text-center">
             <p class="mb-0 small">No archived boards.</p>
         </div>
-        <ul v-else class="list-unstyled d-flex flex-column gap-2 mb-4">
-            <li v-for="board in boardStore.boards" :key="board.id"
-                class="card p-3 d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2">
-                <span>{{ board.title }}</span>
-                <button class="btn btn-sm btn-outline-secondary rounded-pill"
-                    @click="boardStore.restoreBoard(board.id)">
-                    Restore
-                </button>
-            </li>
-        </ul>
+        <div v-else class="row g-3">
+            <div v-for="board in boardStore.boards" :key="board.id" class="col-12 col-sm-6 col-lg-4">
+                <BoardCard :board="board" archived @restore="boardStore.restoreBoard" />
+            </div>
+        </div>
+    </section>
 
+    <section>
         <h2 class="h5 text-muted mb-2">Archived tasks</h2>
         <div v-if="taskStore.tasks.length === 0" class="my-empty-state p-4 text-center">
             <p class="mb-0 small">No archived tasks.</p>
         </div>
-        <ul v-else class="list-unstyled d-flex flex-column gap-2">
-            <li v-for="task in taskStore.tasks" :key="task.id" class="my-task-row card p-3" role="button"
-                @click="openTask(task)">
-                {{ task.title }}
-            </li>
-        </ul>
+        <div v-else class="d-flex flex-column gap-2">
+            <TaskItem v-for="task in taskStore.tasks" :key="task.id" :task="task" archived @select="openTask" />
+        </div>
+    </section>
 
-        <ArchivedTaskModal :task="selectedTask" @close="selectedTask = null" @restored="handleRestored" />
-    </div>
+    <ArchivedTaskModal :task="selectedTask" @close="selectedTask = null" @restored="handleRestored" />
 </template>
