@@ -24,6 +24,19 @@ class TaskModelTest(TestCase):
     def test_todo_creation(self):
         self.assertIsInstance(self.task, Task)
 
+    def test_description_is_optional(self):
+        task = Task.objects.create(
+            title='No description task',
+            goal_set_date=datetime.date(2024, 1, 1),
+            set_to_complete=datetime.date(2024, 1, 31),
+            user=self.user
+        )
+        self.assertEqual(task.description, '')
+
+    def test_description_field_is_blank_true(self):
+        field = Task._meta.get_field('description')
+        self.assertTrue(field.blank)
+
     def test_default_status_is_todo(self):
         self.assertEqual(self.task.status, TaskStatus.TODO)
 
