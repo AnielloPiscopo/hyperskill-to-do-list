@@ -1,52 +1,42 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { authService } from '@/services/authService'
 import { useAuthStore } from '@/stores/authStore'
+import ChangePasswordForm from '@/components/domain/auth/ChangePasswordForm.vue'
 import type { Info } from '@/types'
 
+const router = useRouter()
 const authStore = useAuthStore()
 const info = ref<Info | null>(null)
-
-const oldPassword = ref('')
-const newPassword = ref('')
-const confirmNewPassword = ref('')
-const message = ref<string | null>(null)
 
 onMounted(async () => {
     info.value = await authService.about()
 })
 
-async function handleChangePassword() {
-    message.value = null
-    try {
-        await authService.changePassword({
-            old_password: oldPassword.value,
-            new_password: newPassword.value,
-            confirm_new_password: confirmNewPassword.value
-        })
-        message.value = 'Password cambiata con successo.'
-        oldPassword.value = ''
-        newPassword.value = ''
-        confirmNewPassword.value = ''
-    } catch (e) {
-        message.value = 'Errore nel cambio password.'
-    }
+function handlePasswordChanged() {
+    authStore.clearToken()
+    router.push({ name: 'login' })
 }
 </script>
 
 <template>
-    <main>
-        <h1>Profile</h1>
-        <p v-if="info">{{ info.username }} — {{ info.email }}</p>
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-6">
+            <h1 class="h2 mb-4">Profile</h1>
 
-        <form @submit.prevent="handleChangePassword">
-            <input v-model="oldPassword" type="password" placeholder="Current password" required />
-            <input v-model="newPassword" type="password" placeholder="New password" required />
-            <input v-model="confirmNewPassword" type="password" placeholder="Confirm new password" required />
-            <button type="submit">Change password</button>
-        </form>
-        <p v-if="message">{{ message }}</p>
+            <div v-if="info" class="card p-4 mb-4">
+                <p class="mb-1 text-muted small">Signed in as</p>
+                <p class="h5 mb-0">{{ info.username }}</p>
+                <p class="text-muted mb-0">{{ info.email }}</p>
+            </div>
 
-        <button @click="authStore.logout()">Logout</button>
-    </main>
+            <section class="card p-4">
+                <h2 class="h5 mb-3">Change password</h2>
+                <ChangePasswordForm @success="handlePasswordChanged" />
+            </section>
+
+            <button class="btn btn-outline-secondary rounded-pill mt-4" @click="authStore.logout()">Logout</button>
+        </div>
+    </div>
 </template>

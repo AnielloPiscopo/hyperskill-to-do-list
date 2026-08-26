@@ -1,42 +1,52 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useBoardStore } from '@/stores/boardStore'
-import type { BoardPayload } from '@/types'
+import BoardFormModal from '@/components/domain/board/BoardFormModal.vue'
+import BoardCard from '@/components/domain/board/BoardCard.vue'
+import type { Board } from '@/types'
 
 const boardStore = useBoardStore()
-const newTitle = ref('')
+const formOpen = ref(false)
+const editingBoard = ref<Board | null>(null)
 
 onMounted(() => {
     boardStore.fetchBoards()
 })
 
-async function handleCreate() {
-    if (!newTitle.value.trim()) return
-    const payload: BoardPayload = { title: newTitle.value, description: '', color: '#FFFFFF' }
-    await boardStore.addBoard(payload)
-    newTitle.value = ''
+function openCreate() {
+    editingBoard.value = null
+    formOpen.value = true
+}
+
+function openEdit(board: Board) {
+    editingBoard.value = board
+    formOpen.value = true
+}
+
+async function handleFormClosed() {
+    formOpen.value = false
+    await boardStore.fetchBoards()
 }
 </script>
 
 <template>
-    <main>
-        <h1>My boards</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2 mb-0">My boards</h1>
+        <button class="btn btn-primary my-btn-lift rounded-pill px-4" @click="openCreate">+ New board</button>
+    </div>
 
-        <form @submit.prevent="handleCreate">
-            <input v-model="newTitle" type="text" placeholder="New board name" required />
-            <button type="submit">Create</button>
-        </form>
+    <p v-if="boardStore.loading" class="text-muted">Loading…</p>
+    <p v-else-if="boardStore.error" class="alert alert-danger">{{ boardStore.error }}</p>
 
-        <p v-if="boardStore.loading">Loading...</p>
-        <p v-else-if="boardStore.error">{{ boardStore.error }}</p>
+    <div v-else-if="boardStore.boards.length === 0" class="my-empty-state p-5 text-center">
+        <p class="mb-0">You don't have any boards yet. Create one above to get started!</p>
+    </div>
 
-        <ul v-else>
-            <li v-for="board in boardStore.boards" :key="board.id">
-                <RouterLink :to="{ name: 'board-detail', params: { id: board.id } }">
-                    {{ board.title }}
-                </RouterLink>
-                <button @click="boardStore.archiveBoard(board.id)">Archive</button>
-            </li>
-        </ul>
-    </main>
+    <div v-else class="row g-3">
+        <div v-for="board in boardStore.boards" :key="board.id" class="col-12 col-sm-6 col-lg-4">
+            <BoardCard :board="board" @edit="openEdit" @archive="boardStore.archiveBoard" />
+        </div>
+    </div>
+
+    <BoardFormModal :open="formOpen" :board="editingBoard" @close="handleFormClosed" />
 </template>

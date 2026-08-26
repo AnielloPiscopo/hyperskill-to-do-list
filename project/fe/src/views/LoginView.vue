@@ -1,39 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/authStore'
+import LoginForm from '@/components/domain/auth/LoginForm.vue'
 
 const router = useRouter()
-const authStore = useAuthStore()
 
-const username = ref('')
-const password = ref('')
-const error = ref<string | null>(null)
-const loading = ref(false)
-
-async function handleSubmit() {
-    error.value = null
-    loading.value = true
-    try {
-        await authStore.login({ username: username.value, password: password.value })
-        router.push({ name: 'boards' })
-    } catch (e) {
-        error.value = 'Credenziali non valide.'
-    } finally {
-        loading.value = false
-    }
+function handleSuccess() {
+    router.push({ name: 'boards' })
 }
 </script>
 
 <template>
-    <main>
-        <form @submit.prevent="handleSubmit">
-            <h1>Login</h1>
-            <input v-model="username" type="text" placeholder="Username" required />
-            <input v-model="password" type="password" placeholder="Password" required />
-            <p v-if="error">{{ error }}</p>
-            <button type="submit" :disabled="loading">{{ loading ? 'Signing in...' : 'Sign in' }}</button>
-            <RouterLink :to="{ name: 'register' }">Don't have an account? Register</RouterLink>
-        </form>
-    </main>
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-8 col-md-5 col-lg-4">
+            <div class="card shadow-sm p-4">
+                <h1 class="h3 mb-4 text-center">Welcome back</h1>
+                <LoginForm @success="handleSuccess" />
+                <p class="text-center mt-3 mb-0">
+                    <RouterLink :to="{ name: 'register' }">Don't have an account? Register</RouterLink>
+                </p>
+            </div>
+        </div>
+    </div>
 </template>

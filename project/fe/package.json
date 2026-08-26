@@ -17,13 +17,16 @@
     "generate:types": "openapi-typescript http://127.0.0.1:8000/api/schema/ -o ./src/schema/api-schema.d.ts"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "axios": "^1.19.0",
+    "bootstrap": "^5.3.8",
     "pinia": "^4.0.2",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
+    "@types/bootstrap": "^5.2.11",
     "@types/jsdom": "^28.0.3",
     "@types/node": "^24.13.3",
     "@vitejs/plugin-vue": "^6.0.8",

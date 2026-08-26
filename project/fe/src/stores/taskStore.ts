@@ -9,7 +9,7 @@ export const useTaskStore = defineStore('tasks', () => {
     const loading = ref(false)
     const error = ref<string | null>(null)
 
-    async function fetchTasks(params?: Record<string, string | number>) {
+    async function fetchTasks(params?: Record<string, string | number | boolean>) {
         loading.value = true
         error.value = null
         try {
@@ -47,5 +47,20 @@ export const useTaskStore = defineStore('tasks', () => {
         tasks.value = tasks.value.filter((t) => t.id !== id)
     }
 
-    return { tasks, loading, error, fetchTasks, addTask, updateTask, removeTask, archiveTask }
+    async function restoreTask(id: number) {
+        await taskService.restore(id)
+        tasks.value = tasks.value.filter((t) => t.id !== id)
+    }
+
+    return {
+        tasks,
+        loading,
+        error,
+        fetchTasks,
+        addTask,
+        updateTask,
+        removeTask,
+        archiveTask,
+        restoreTask
+    }
 })

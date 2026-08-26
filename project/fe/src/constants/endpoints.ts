@@ -1,5 +1,5 @@
 const TASK_BASE_URL = '/tasks/'
-const BOARD_BASE_URL = '/board/'
+const BOARD_BASE_URL = '/boards/'
 const AUTH_BASE_URL = '/auth/'
 
 export const TASK_ENDPOINTS = {

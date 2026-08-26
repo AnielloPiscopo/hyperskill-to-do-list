@@ -10,7 +10,7 @@ export const useBoardStore = defineStore('boards', () => {
     const loading = ref(false)
     const error = ref<string | null>(null)
 
-    async function fetchBoards(params?: Record<string, string | number>) {
+    async function fetchBoards(params?: Record<string, string | number | boolean>) {
         loading.value = true
         error.value = null
         try {
@@ -60,6 +60,11 @@ export const useBoardStore = defineStore('boards', () => {
         boards.value = boards.value.filter((b) => b.id !== id)
     }
 
+    async function restoreBoard(id: number, restoreTasks = false) {
+        await boardService.restore(id, restoreTasks)
+        boards.value = boards.value.filter((b) => b.id !== id)
+    }
+
     return {
         boards,
         currentBoard,
@@ -70,6 +75,7 @@ export const useBoardStore = defineStore('boards', () => {
         addBoard,
         updateBoard,
         removeBoard,
-        archiveBoard
+        archiveBoard,
+        restoreBoard
     }
 })
