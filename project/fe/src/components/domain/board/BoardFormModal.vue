@@ -65,7 +65,7 @@ async function handleSubmit() {
                 description: description.value,
                 color: color.value
             }
-            await boardStore.updateBoard(props.board.id, payload)
+            await boardStore.updateBoard(props.board.slug, payload)
         } else {
             const payload: BoardPayload = {
                 title: title.value,

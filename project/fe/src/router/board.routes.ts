@@ -8,7 +8,7 @@ export const boardRoutes: RouteRecordRaw[] = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/:id',
+        path: '/:slug',
         name: 'board-detail',
         component: () => import('@/views/BoardDetailView.vue'),
         meta: { requiresAuth: true }

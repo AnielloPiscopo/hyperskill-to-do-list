@@ -5,4 +5,4 @@ export type BoardDetail = SchemaComponents['BoardDetail']
 export type PatchedBoard = SchemaComponents['PatchedBoard']
 export type PaginatedBoardList = SchemaComponents['PaginatedBoardList']
 
-export type BoardPayload = ApiPayload<Board>
+export type BoardPayload = ApiPayload<Board, 'is_archived' | 'slug'>
