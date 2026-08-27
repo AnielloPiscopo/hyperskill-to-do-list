@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     'django_filters',
     'corsheaders',
+    'core',
     'task',
     'board',
     'users',

@@ -5,7 +5,7 @@ from django.test import TestCase
 
 from board.models import Board
 from board.serializers import BoardSerializer, BoardDetailSerializer
-from core.serializers import BaseModelSerializer
+from core.serializers import BaseModelSerializer, SlugModelSerializer
 from task.models import Task
 
 
@@ -27,13 +27,16 @@ class BoardSerializerTest(TestCase):
     def test_is_subclass_of_base_model_serializer(self):
         self.assertTrue(issubclass(BoardSerializer, BaseModelSerializer))
 
+    def test_is_subclass_of_slug_model_serializer(self):
+        self.assertTrue(issubclass(BoardSerializer, SlugModelSerializer))
+
     # --- excluded fields ---
 
     def test_user_field_excluded(self):
         serializer = BoardSerializer(self.board)
         self.assertNotIn('user', serializer.data)
 
-    # --- read-only fields (inherited from BaseModelSerializer) ---
+    # --- read-only fields (inherited from BaseModelSerializer / SlugModelSerializer) ---
 
     def test_id_is_read_only(self):
         serializer = BoardSerializer(self.board)
@@ -47,11 +50,21 @@ class BoardSerializerTest(TestCase):
         serializer = BoardSerializer(self.board)
         self.assertTrue(serializer.fields['updated_at'].read_only)
 
+    def test_slug_is_read_only(self):
+        serializer = BoardSerializer(self.board)
+        self.assertTrue(serializer.fields['slug'].read_only)
+
+    # --- slug serialization ---
+
+    def test_slug_value_matches_board_slug(self):
+        serializer = BoardSerializer(self.board)
+        self.assertEqual(serializer.data['slug'], self.board.slug)
+
     # --- serialization ---
 
     def test_serialization_contains_expected_fields(self):
         serializer = BoardSerializer(self.board)
-        for field in ('id', 'title', 'description', 'color', 'created_at', 'updated_at'):
+        for field in ('id', 'title', 'description', 'color', 'slug', 'created_at', 'updated_at'):
             self.assertIn(field, serializer.data)
 
     def test_serialization_title_value(self):

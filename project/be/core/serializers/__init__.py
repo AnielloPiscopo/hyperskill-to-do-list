@@ -1,4 +1,5 @@
-from .base import BaseModelSerializer, SlugModelSerializer
+from .base import BaseModelSerializer
+from .slugs import SlugModelSerializer
 from .bulk import BulkIdsSerializer
 from .action import SimpleMessageResponseSerializer
 
