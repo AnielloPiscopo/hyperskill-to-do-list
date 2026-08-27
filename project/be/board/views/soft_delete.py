@@ -33,11 +33,11 @@ class BoardArchiveView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request: Request, pk: int) -> Response:
+    def post(self, request: Request, slug: str) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardArchiveView', 'POST',
-                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
-        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=False)
+                                      LogHelper.Direction.REQUEST)} - received, slug={slug}")
+        board: Board = get_object_or_404(Board, slug=slug, user=request.user, is_archived=False)
         self.check_object_permissions(request, board)
         archive_board(board)
         response: Response = Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
@@ -70,11 +70,11 @@ class BoardRestoreView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request: Request, pk: int) -> Response:
+    def post(self, request: Request, slug: str) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardRestoreView', 'POST',
-                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
-        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
+                                      LogHelper.Direction.REQUEST)} - received, slug={slug}")
+        board: Board = get_object_or_404(Board, slug=slug, user=request.user, is_archived=True)
         self.check_object_permissions(request, board)
         # Query params are always strings, so compare against the literal 'true'
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'

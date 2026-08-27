@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-__all__ = ['BaseModelSerializer']
+__all__ = ['BaseModelSerializer', 'SlugModelSerializer']
 
 class BaseModelSerializer(serializers.ModelSerializer):
     """Base serializer for all model serializers in this project.
@@ -19,3 +19,9 @@ class BaseModelSerializer(serializers.ModelSerializer):
             if isinstance(value, str):
                 data[field] = value.strip()
         return data
+
+class SlugModelSerializer(BaseModelSerializer):
+    """Base serializer for models that expose an auto-generated slug field."""
+
+    class Meta(BaseModelSerializer.Meta):
+        read_only_fields = BaseModelSerializer.Meta.read_only_fields + ['slug']
