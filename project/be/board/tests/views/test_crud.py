@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from board.models import Board
+from board.models import Board, BoardSlugHistory
 
 
 class BoardListViewTest(APITestCase):
@@ -79,6 +79,18 @@ class BoardListViewTest(APITestCase):
         response = self.client.post('/boards/', {})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def test_create_response_contains_slug(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/', {'title': 'New Board'})
+        self.assertIn('slug', response.data)
+        self.assertEqual(response.data['slug'], 'new-board')
+
+    def test_slug_is_ignored_when_provided_in_create(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.post('/boards/', {'title': 'New Board', 'slug': 'custom-slug'})
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['slug'], 'new-board')
+
     # --- search ---
 
     def test_search_by_title(self):
@@ -126,8 +138,8 @@ class BoardDetailViewTest(APITestCase):
         self.other_user = User.objects.create_user(username='user2', password='pass123')
         self.board = Board.objects.create(title='Board 1', user=self.user)
 
-    def _url(self):
-        return f'/boards/{self.board.pk}/'
+    def _url(self, slug=None):
+        return f'/boards/{slug or self.board.slug}/'
 
     # --- authentication ---
 
@@ -223,3 +235,38 @@ class BoardDetailViewTest(APITestCase):
         self.client.force_authenticate(user=self.user)
         response = self.client.patch(self._url(), {'title': 'Patched'})
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    # --- slug routing ---
+
+    def test_retrieve_uses_slug_in_url(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self._url())
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['slug'], self.board.slug)
+
+    def test_get_unknown_slug_returns_404(self):
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self._url(slug='nonexistent-slug'))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_old_slug_returns_moved_to(self):
+        old_slug = 'old-board-slug'
+        BoardSlugHistory.objects.create(board=self.board, slug=old_slug)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self._url(slug=old_slug))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['moved_to'], self.board.slug)
+
+    def test_get_old_slug_of_other_user_board_returns_404(self):
+        other_board = Board.objects.create(title='Other Board', user=self.other_user)
+        old_slug = 'old-other-slug'
+        BoardSlugHistory.objects.create(board=other_board, slug=old_slug)
+        self.client.force_authenticate(user=self.user)
+        response = self.client.get(self._url(slug=old_slug))
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_changes_slug(self):
+        self.client.force_authenticate(user=self.user)
+        self.client.put(self._url(), {'title': 'New Title'})
+        self.board.refresh_from_db()
+        self.assertEqual(self.board.slug, 'new-title')

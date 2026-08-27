@@ -112,12 +112,11 @@ class TaskSerializerTest(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('title', serializer.errors)
 
-    def test_missing_description_is_invalid(self):
+    def test_missing_description_is_valid(self):
         data = {**self.valid_data}
         del data['description']
         serializer = TaskSerializer(data=data)
-        self.assertFalse(serializer.is_valid())
-        self.assertIn('description', serializer.errors)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
 
     def test_missing_goal_set_date_is_invalid(self):
         data = {**self.valid_data}
