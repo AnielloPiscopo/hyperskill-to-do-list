@@ -6,7 +6,7 @@ from django.db import models
 from drf_spectacular.utils import extend_schema_field
 from core.constants.api import validation_msg
 from core.utils import validators
-from core.serializers import BaseModelSerializer
+from core.serializers import BaseModelSerializer, SlugModelSerializer
 from task.serializers import TaskSerializer
 from task.models import Task
 from board.models import Board
@@ -14,7 +14,7 @@ from board.models import Board
 __all__ = ['BoardSerializer', 'BoardDetailSerializer']
 
 
-class BoardSerializer(BaseModelSerializer):
+class BoardSerializer(SlugModelSerializer):
     """Serializer for creating and updating boards.
 
     `user` and `is_archived` are excluded because they are set server-side
@@ -24,6 +24,8 @@ class BoardSerializer(BaseModelSerializer):
     class Meta(BaseModelSerializer.Meta):
         model = Board
         exclude = ['user']
+        read_only_fields = SlugModelSerializer.Meta.read_only_fields + ['is_archived']
+
 
     def validate_color(self, color: str) -> str:  # noqa: field-level validator — DRF calls it via naming convention
         """Validate that the color is a proper 6-digit hex string and normalise it to uppercase."""

@@ -1,5 +1,6 @@
 import logging
 from django.db import models
+from django.http import Http404
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
@@ -14,7 +15,7 @@ from core.permissions import IsAuthorOrReadOnly
 from core.mixins import UserScopedQuerysetMixin
 from board.constants.api import validation_msg
 from board.schema.api import payloads, responses as board_responses
-from board.models import Board
+from board.models import Board, BoardSlugHistory
 from board.serializers import BoardSerializer, BoardDetailSerializer
 
 __all__ = ['BoardListView', 'BoardDetailView']
@@ -92,6 +93,7 @@ class BoardListView(UserScopedQuerysetMixin, generics.ListCreateAPIView):
 
 
 class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPIView):
+    lookup_field = 'slug'
     queryset = Board.objects.all()
     permission_classes = [IsAuthenticated, IsAuthorOrReadOnly]
 
@@ -113,13 +115,23 @@ class BoardDetailView(UserScopedQuerysetMixin, generics.RetrieveUpdateDestroyAPI
         }
     )
     def get(self, request: Request, *args, **kwargs) -> Response:
-        logger.info(
-            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
-        response: Response = super().get(request, *args, **kwargs)
-        logger.info(
-            f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.RESPONSE)}"
-            f" - status={response.status_code}")
-        return response
+        try:
+            logger.info(
+                f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.REQUEST)} - received")
+            response: Response = super().get(request, *args, **kwargs)
+            logger.info(
+                f"{LogHelper.build_prefix('board', 'BoardDetailView', 'GET', LogHelper.Direction.RESPONSE)}"
+                f" - status={response.status_code}")
+            return response
+        except Http404:
+            slug: str = kwargs.get('slug')
+            history = (BoardSlugHistory.objects.filter(slug=slug, board__user=request.user)
+                       .select_related('board').first())
+
+            if history:
+                return Response({"moved_to": history.board.slug})
+
+            raise
 
     @extend_schema(
         summary='Update a board',

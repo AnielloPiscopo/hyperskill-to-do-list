@@ -5,13 +5,13 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from django.db.models import QuerySet
 
-from core.models import BaseModel
+from core.models import SluggedModel
 from task.models import Task
 
-__all__ = ["Board"]
+__all__ = ["Board", "BoardSlugHistory"]
 
 
-class Board(BaseModel):
+class Board(SluggedModel):
     """A board that groups related tasks and belongs to a single user.
 
     Supports soft-delete via the inherited `is_archived` flag.
@@ -47,8 +47,21 @@ class Board(BaseModel):
         help_text='User who created the board'
     )
 
+    class Meta:
+        unique_together = ('user', 'slug')
+
     def __str__(self):
         return f"[{self.user.username}] {self.title}"
 
     def __repr__(self):
         return f"Board(id={self.id}, title={self.title!r}, user={self.user.username!r})"
+
+class BoardSlugHistory(models.Model):
+    """Old slugs a board has had, kept so old URLs keep resolving after a rename."""
+
+    board = models.ForeignKey(Board, on_delete=models.CASCADE, related_name='old_slugs')
+    slug = models.SlugField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('board', 'slug')
