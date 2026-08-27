@@ -5,7 +5,9 @@ from .views import (
     BoardRestoreView,
     BoardArchiveView,
     BoardRestoreAllView,
-    BoardArchiveAllView)
+    BoardArchiveAllView,
+    BoardDestroyAllView
+)
 
 urlpatterns = [
     path('', BoardListView.as_view()),
@@ -14,4 +16,5 @@ urlpatterns = [
     path('<slug:slug>/', BoardDetailView.as_view()),
     path('<slug:slug>/archive/', BoardArchiveView.as_view()),
     path('<slug:slug>/restore/', BoardRestoreView.as_view()),
+    path('delete-all/', BoardDestroyAllView.as_view()),
 ]
