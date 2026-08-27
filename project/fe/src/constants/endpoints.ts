@@ -14,9 +14,9 @@ export const TASK_ENDPOINTS = {
 
 export const BOARD_ENDPOINTS = {
     list: BOARD_BASE_URL,
-    detail: (id: number) => BOARD_BASE_URL + id + "/",
-    archive: (id: number) => BOARD_BASE_URL + id + "/archive/",
-    restore: (id: number) => BOARD_BASE_URL + id + "/restore/",
+    detail: (slug: string) => BOARD_BASE_URL + slug + "/",
+    archive: (slug: string) => BOARD_BASE_URL + slug + "/archive/",
+    restore: (slug: string) => BOARD_BASE_URL + slug + "/restore/",
     archiveAll: BOARD_BASE_URL + "archive-all/",
     restoreAll: BOARD_BASE_URL + "restore-all/",
 }

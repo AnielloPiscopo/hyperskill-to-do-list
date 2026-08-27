@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useBoardStore } from '@/stores/boardStore'
 import { useTaskStore } from '@/stores/taskStore'
 import TaskFormModal from '@/components/domain/task/TaskFormModal.vue'
@@ -8,7 +8,7 @@ import TaskItem from '@/components/domain/task/TaskItem.vue'
 import type { Task } from '@/types'
 
 const route = useRoute()
-const boardId = Number(route.params.id)
+const router = useRouter()
 
 const boardStore = useBoardStore()
 const taskStore = useTaskStore()
@@ -16,9 +16,18 @@ const taskStore = useTaskStore()
 const formOpen = ref(false)
 const editingTask = ref<Task | null>(null)
 
-onMounted(() => {
-    boardStore.fetchBoard(boardId)
-})
+async function loadBoard() {
+    const slug = route.params.slug as string
+    await boardStore.fetchBoard(slug)
+
+    if (boardStore.movedToSlug) {
+        router.replace({ name: 'board-detail', params: { slug: boardStore.movedToSlug } })
+    }
+}
+
+onMounted(loadBoard)
+
+watch(() => route.params.slug, loadBoard)
 
 function openCreate() {
     editingTask.value = null
@@ -32,12 +41,12 @@ function openEdit(task: Task) {
 
 async function handleFormClosed() {
     formOpen.value = false
-    await boardStore.fetchBoard(boardId)
+    if (boardStore.currentBoard) await boardStore.fetchBoard(boardStore.currentBoard.slug)
 }
 
 async function handleArchiveTask(taskId: number) {
     await taskStore.archiveTask(taskId)
-    await boardStore.fetchBoard(boardId)
+    if (boardStore.currentBoard) await boardStore.fetchBoard(boardStore.currentBoard.slug)
 }
 </script>
 
@@ -61,6 +70,7 @@ async function handleArchiveTask(taskId: number) {
                 @archive="handleArchiveTask" />
         </div>
 
-        <TaskFormModal :open="formOpen" :task="editingTask" :board-id="boardId" @close="handleFormClosed" />
+        <TaskFormModal :open="formOpen" :task="editingTask" :board-id="boardStore.currentBoard.id"
+            @close="handleFormClosed" />
     </div>
 </template>

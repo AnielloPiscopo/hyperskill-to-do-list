@@ -128,7 +128,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/boards/{id}/": {
+    "/boards/{slug}/": {
         parameters: {
             query?: never;
             header?: never;
@@ -200,7 +200,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/boards/{id}/archive/": {
+    "/boards/{slug}/archive/": {
         parameters: {
             query?: never;
             header?: never;
@@ -220,7 +220,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/boards/{id}/restore/": {
+    "/boards/{slug}/restore/": {
         parameters: {
             query?: never;
             header?: never;
@@ -408,11 +408,12 @@ export interface components {
          */
         Board: {
             readonly id: number;
-            is_archived?: boolean;
+            readonly is_archived: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            readonly slug: string;
             /** @description Title of the board (max 100 characters) */
             title: string;
             /** @description Detailed description of the board (max 2048 characters) */
@@ -424,11 +425,12 @@ export interface components {
         BoardDetail: {
             readonly id: number;
             readonly tasks: components["schemas"]["Task"][];
-            is_archived?: boolean;
+            readonly is_archived: boolean;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
             readonly updated_at: string;
+            readonly slug: string;
             /** @description Title of the board (max 100 characters) */
             title: string;
             /** @description Detailed description of the board (max 2048 characters) */
@@ -514,11 +516,12 @@ export interface components {
          */
         PatchedBoard: {
             readonly id?: number;
-            is_archived?: boolean;
+            readonly is_archived?: boolean;
             /** Format: date-time */
             readonly created_at?: string;
             /** Format: date-time */
             readonly updated_at?: string;
+            readonly slug?: string;
             /** @description Title of the board (max 100 characters) */
             title?: string;
             /** @description Detailed description of the board (max 2048 characters) */
@@ -627,7 +630,7 @@ export interface components {
             /** @description Title of the task (max 50 characters) */
             title: string;
             /** @description Detailed description of the task (max 1024 characters) */
-            description: string;
+            description?: string;
             /**
              * Format: date
              * @description Date when the task was created (YYYY-MM-DD)
@@ -931,7 +934,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };
@@ -966,7 +969,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };
@@ -1014,7 +1017,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };
@@ -1055,7 +1058,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };
@@ -1186,7 +1189,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };
@@ -1225,7 +1228,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                id: number;
+                slug: string;
             };
             cookie?: never;
         };

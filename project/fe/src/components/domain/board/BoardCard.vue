@@ -2,7 +2,7 @@
 import type { Board } from '@/types'
 
 const props = defineProps<{ board: Board; archived?: boolean }>()
-const emit = defineEmits<{ edit: [board: Board]; archive: [id: number]; restore: [id: number] }>()
+const emit = defineEmits<{ edit: [board: Board]; archive: [slug: string]; restore: [slug: string] }>()
 </script>
 
 <template>
@@ -11,14 +11,14 @@ const emit = defineEmits<{ edit: [board: Board]; archive: [id: number]; restore:
             <span class="fw-medium">{{ board.title }}</span>
             <div class="mt-3">
                 <button class="btn btn-sm btn-outline-secondary my-btn-outline-lift rounded-pill"
-                    @click="emit('restore', board.id)">
+                    @click="emit('restore', board.slug)">
                     Restore
                 </button>
             </div>
         </template>
 
         <template v-else>
-            <RouterLink :to="{ name: 'board-detail', params: { id: board.id } }"
+            <RouterLink :to="{ name: 'board-detail', params: { slug: board.slug } }"
                 class="text-decoration-none text-reset">
                 <h2 class="h5 mb-2">{{ board.title }}</h2>
                 <p class="text-muted small mb-0">{{ board.description || 'No description' }}</p>
@@ -29,7 +29,7 @@ const emit = defineEmits<{ edit: [board: Board]; archive: [id: number]; restore:
                     Edit
                 </button>
                 <button class="btn btn-sm btn-outline-secondary my-btn-outline-lift rounded-pill"
-                    @click="emit('archive', board.id)">
+                    @click="emit('archive', board.slug)">
                     Archive
                 </button>
             </div>
