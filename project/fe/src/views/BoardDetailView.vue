@@ -57,7 +57,7 @@ async function handleArchiveTask(taskId: number) {
         </div>
 
         <div v-else class="d-flex flex-column gap-2">
-            <TaskItem v-for="task in boardStore.currentBoard.tasks" :key="task.id" :task="task" @edit="openEdit"
+            <TaskItem v-for="task in boardStore.currentBoard.tasks" :key="task.id" :task="task" @select="openEdit"
                 @archive="handleArchiveTask" />
         </div>
 
