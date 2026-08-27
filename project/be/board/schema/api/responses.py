@@ -12,4 +12,8 @@ RESPONSE_200_ARCHIVED_ALL = OpenApiResponse(response=SimpleMessageResponseSerial
                                             description='Boards archived successfully.')
 RESPONSE_200_RESTORED_ALL = OpenApiResponse(response=SimpleMessageResponseSerializer,
                                             description='Boards restored successfully.')
+RESPONSE_200_DELETED_ALL = OpenApiResponse(
+    response=SimpleMessageResponseSerializer,
+    description='Boards deleted successfully.'
+)
 RESPONSE_204_DELETED = OpenApiResponse(description='Board deleted successfully.')

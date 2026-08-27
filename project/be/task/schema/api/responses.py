@@ -14,4 +14,9 @@ RESPONSE_200_RESTORED_ALL = OpenApiResponse(response=SimpleMessageResponseSerial
                                             description='Tasks restored successfully.')
 RESPONSE_200_MOVED = OpenApiResponse(response=SimpleMessageResponseSerializer,
                                      description='Tasks moved successfully.')
+
+RESPONSE_200_DELETED_ALL = OpenApiResponse(
+    response=SimpleMessageResponseSerializer,
+    description='Tasks deleted successfully.'
+)
 RESPONSE_204_DELETED = OpenApiResponse(description='Task deleted successfully.')

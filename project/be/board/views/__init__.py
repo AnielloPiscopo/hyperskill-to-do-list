@@ -1,4 +1,5 @@
 from .crud import BoardListView, BoardDetailView
+from .bulk import BoardDestroyAllView
 from .soft_delete import BoardArchiveView, BoardRestoreView, BoardArchiveAllView, BoardRestoreAllView
 
 __all__ = [
@@ -8,4 +9,5 @@ __all__ = [
     'BoardRestoreView',
     'BoardArchiveAllView',
     'BoardRestoreAllView',
+    'BoardDestroyAllView'
 ]
