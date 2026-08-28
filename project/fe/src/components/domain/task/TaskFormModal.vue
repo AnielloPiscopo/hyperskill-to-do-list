@@ -26,7 +26,7 @@ function resetForm() {
     error.value = null
     if (props.task) {
         title.value = props.task.title
-        description.value = props.task.description
+        description.value = props.task.description ?? ''
         goalSetDate.value = props.task.goal_set_date
         setToComplete.value = props.task.set_to_complete
         status.value = props.task.status ?? 'TODO'
