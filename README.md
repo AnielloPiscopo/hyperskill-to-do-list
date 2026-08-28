@@ -5,6 +5,7 @@ A TODO List REST API built with Django and Django REST Framework, developed as p
 This repository contains the backend (`project/be`). A frontend (`project/fe`) may be added in the future.
 
 🔗 **Live API:** [https://hyperskill-to-do-list.onrender.com](https://hyperskill-to-do-list.onrender.com)
+🔗 **Webpage:** [https://hyperskill-to-do-list.vercel.app](https://hyperskill-to-do-list.vercel.app)
 
 ---
 
