@@ -7,7 +7,7 @@ import type { Task } from '@/types'
 import type { BoardDetail } from '@/types'
 
 const props = defineProps<{ task: Task | null }>()
-const emit = defineEmits<{ close: []; restored: [] }>()
+const emit = defineEmits<{ close: []; restored: []; requestDelete: [task: Task] }>()
 
 const taskStore = useTaskStore()
 const board = ref<BoardDetail | null>(null)
@@ -26,7 +26,7 @@ watch(
     async (task) => {
         board.value = null
         if (task) {
-            if (task.board) board.value = await boardService.getOne(task.board)
+            if (task.board_slug) board.value = await boardService.getOne(task.board_slug)
             modalInstance?.show()
         } else {
             modalInstance?.hide()
@@ -38,6 +38,12 @@ async function handleRestore() {
     if (!props.task) return
     await taskStore.restoreTask(props.task.id)
     emit('restored')
+    modalInstance?.hide()
+}
+
+function handleDeleteClick() {
+    if (!props.task) return
+    emit('requestDelete', props.task)
     modalInstance?.hide()
 }
 </script>
@@ -53,8 +59,7 @@ async function handleRestore() {
                 <div class="modal-body">
                     <p v-if="board" class="text-muted small mb-3">Board: {{ board.title }}</p>
                     <p>{{ task.description }}</p>
-                    <time :datetime="task.set_to_complete" class="my-text-mono text-muted mb-2">Deadline: {{
-                        task.set_to_complete }}</time>
+                    <p class="my-text-mono text-muted mb-2">Deadline: {{ task.set_to_complete }}</p>
                     <span class="badge rounded-pill text-bg-light border me-2">{{ task.status }}</span>
                     <span class="badge rounded-pill"
                         :class="`my-badge-priority-${(task.priority ?? 'zero').toLowerCase()}`">
@@ -66,11 +71,16 @@ async function handleRestore() {
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">
+                    <button type="button" class="btn btn-outline-secondary my-btn-outline-lift rounded-pill"
+                        data-bs-dismiss="modal">
                         Close
                     </button>
-                    <button v-if="!board?.is_archived" type="button" class="btn btn-primary my-btn-lift rounded-pill"
-                        @click="handleRestore">
+                    <button type="button" class="btn btn-outline-danger my-btn-danger-lift rounded-pill"
+                        @click="handleDeleteClick">
+                        Delete
+                    </button>
+                    <button type="button" class="btn btn-primary my-btn-lift rounded-pill"
+                        :disabled="board?.is_archived" @click="handleRestore">
                         Restore
                     </button>
                 </div>
@@ -78,6 +88,7 @@ async function handleRestore() {
         </div>
     </div>
 </template>
+
 <style scoped>
 .my-badge-priority-high {
     background-color: var(--coral);

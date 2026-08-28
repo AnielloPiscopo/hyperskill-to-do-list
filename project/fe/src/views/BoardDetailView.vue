@@ -26,7 +26,6 @@ async function loadBoard() {
 }
 
 onMounted(loadBoard)
-
 watch(() => route.params.slug, loadBoard)
 
 function openCreate() {
@@ -57,11 +56,18 @@ async function handleArchiveTask(taskId: number) {
     <div v-else-if="boardStore.currentBoard">
         <div class="d-flex justify-content-between align-items-center mb-1">
             <h1 class="h2 mb-0">{{ boardStore.currentBoard.title }}</h1>
-            <button class="btn btn-primary my-btn-lift rounded-pill px-4" @click="openCreate">+ New task</button>
+            <button v-if="!boardStore.currentBoard.is_archived" class="btn btn-primary my-btn-lift rounded-pill px-4"
+                @click="openCreate">
+                + New task
+            </button>
         </div>
         <p class="text-muted mb-4">{{ boardStore.currentBoard.description }}</p>
 
-        <div v-if="boardStore.currentBoard.tasks.length === 0" class="my-empty-state p-5 text-center">
+        <div v-if="boardStore.currentBoard.is_archived" class="alert alert-warning">
+            This board is archived. Restore it from Trash to manage its tasks.
+        </div>
+
+        <div v-else-if="boardStore.currentBoard.tasks.length === 0" class="my-empty-state p-5 text-center">
             <p class="mb-0">No tasks yet — create your first one above.</p>
         </div>
 

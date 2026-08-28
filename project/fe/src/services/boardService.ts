@@ -45,5 +45,9 @@ export const boardService = {
             params: { restore_tasks: restoreTasks }
         })
         return response.data
+    },
+    async deleteAll(payload: BulkIds = {}): Promise<SimpleMessageResponse> {
+        const response = await api.post<SimpleMessageResponse>(BOARD_ENDPOINTS.deleteAll, payload)
+        return response.data
     }
 }

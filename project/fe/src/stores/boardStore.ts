@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { isAxiosError } from 'axios'
 import { boardService } from '@/services/boardService'
 import type { Board, BoardDetail, BoardPayload, PatchedBoard } from '@/types'
-import { isAxiosError } from 'axios'
 
 export const useBoardStore = defineStore('boards', () => {
     const boards = ref<Board[]>([])
     const currentBoard = ref<BoardDetail | null>(null)
     const loading = ref(false)
     const error = ref<string | null>(null)
+
     const movedToSlug = ref<string | null>(null)
 
     async function fetchBoards(params?: Record<string, string | number | boolean>) {
@@ -21,7 +22,7 @@ export const useBoardStore = defineStore('boards', () => {
             if (isAxiosError(e) && e.response?.status === 404) {
                 boards.value = []
             } else {
-                error.value = 'Failded to load boards.'
+                error.value = 'Failed to load boards.'
             }
         } finally {
             loading.value = false
@@ -31,6 +32,7 @@ export const useBoardStore = defineStore('boards', () => {
     async function fetchBoard(slug: string) {
         loading.value = true
         error.value = null
+        movedToSlug.value = null
         try {
             currentBoard.value = await boardService.getOne(slug)
         } catch (e) {
@@ -65,9 +67,36 @@ export const useBoardStore = defineStore('boards', () => {
         boards.value = boards.value.filter((b) => b.slug !== slug)
     }
 
-    async function restoreBoard(slug: string, restoreTasks = false) {
-        await boardService.restore(slug, restoreTasks)
+    async function restoreBoard(slug: string) {
+        await boardService.restore(slug, true)
         boards.value = boards.value.filter((b) => b.slug !== slug)
+    }
+
+    async function deleteAllBoards(ids?: number[]) {
+        await boardService.deleteAll(ids ? { ids } : {})
+        if (ids) {
+            boards.value = boards.value.filter((b) => !ids.includes(b.id))
+        } else {
+            boards.value = []
+        }
+    }
+
+    async function archiveAllBoards(ids?: number[]) {
+        await boardService.archiveAll(ids ? { ids } : {})
+        if (ids) {
+            boards.value = boards.value.filter((b) => !ids.includes(b.id))
+        } else {
+            boards.value = []
+        }
+    }
+
+    async function restoreAllBoards(ids?: number[]) {
+        await boardService.restoreAll(ids ? { ids } : {}, true)
+        if (ids) {
+            boards.value = boards.value.filter((b) => !ids.includes(b.id))
+        } else {
+            boards.value = []
+        }
     }
 
     return {
@@ -82,6 +111,9 @@ export const useBoardStore = defineStore('boards', () => {
         updateBoard,
         removeBoard,
         archiveBoard,
-        restoreBoard
+        restoreBoard,
+        deleteAllBoards,
+        archiveAllBoards,
+        restoreAllBoards
     }
 })

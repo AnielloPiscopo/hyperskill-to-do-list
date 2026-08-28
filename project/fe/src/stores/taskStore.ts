@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { isAxiosError } from 'axios'
 import { taskService } from '@/services/taskService'
 import type { Task, TaskPayload, PatchedTask } from '@/types'
-import { isAxiosError } from 'axios'
 
 export const useTaskStore = defineStore('tasks', () => {
     const tasks = ref<Task[]>([])
@@ -52,6 +52,24 @@ export const useTaskStore = defineStore('tasks', () => {
         tasks.value = tasks.value.filter((t) => t.id !== id)
     }
 
+    async function deleteAllTasks(ids?: number[]) {
+        await taskService.deleteAll(ids ? { ids } : {})
+        if (ids) {
+            tasks.value = tasks.value.filter((t) => !ids.includes(t.id))
+        } else {
+            tasks.value = []
+        }
+    }
+
+    async function restoreAllTasks(ids?: number[]) {
+        await taskService.restoreAll(ids ? { ids } : {})
+        if (ids) {
+            tasks.value = tasks.value.filter((t) => !ids.includes(t.id))
+        } else {
+            tasks.value = []
+        }
+    }
+
     return {
         tasks,
         loading,
@@ -61,6 +79,8 @@ export const useTaskStore = defineStore('tasks', () => {
         updateTask,
         removeTask,
         archiveTask,
-        restoreTask
+        restoreTask,
+        deleteAllTasks,
+        restoreAllTasks
     }
 })
