@@ -1,11 +1,13 @@
 # TO-do List API
 
-A TODO List REST API built with Django and Django REST Framework, developed as part of a HyperSkill project. The API allows users to organize tasks into boards, manage their lifecycle (including soft delete with cascade archiving), and explore the API through auto-generated documentation.
+A full-stack TODO List application built with Django REST Framework and Vue 3, developed as part of a HyperSkill project and since extended well beyond its original scope. The API lets users organize tasks into boards, manage their lifecycle (soft delete with cascade archiving), and explore the API through auto-generated documentation. The frontend is a Vue 3 SPA that consumes it.
 
-This repository contains the backend (`project/be`). A frontend (`project/fe`) may be added in the future.
+This repository contains both the backend (`project/be`) and the frontend (`project/fe`).
 
 🔗 **Live API:** [https://hyperskill-to-do-list.onrender.com](https://hyperskill-to-do-list.onrender.com)
 🔗 **Webpage:** [https://hyperskill-to-do-list.vercel.app](https://hyperskill-to-do-list.vercel.app)
+
+*(Verify these links point to the current deployment before publishing — this document assumes they're up to date.)*
 
 ---
 
@@ -13,23 +15,27 @@ This repository contains the backend (`project/be`). A frontend (`project/fe`) m
 
 - **Task management** — create, read, update, and delete tasks
 - **Board management** — group tasks into boards, with full CRUD
+- **Human-readable board URLs** — boards are addressed by an auto-generated slug (e.g. `/boards/my-project/`) rather than a numeric id; renaming a board regenerates its slug while old slugs keep resolving via a redirect
 - **Task priority** — assign priority levels to tasks, with automatic ordering by priority and status
 - **Soft delete** — archive and restore both tasks and boards instead of permanently deleting them
 - **Cascade archiving** — archiving a board archives all of its tasks; restoring a board can optionally restore its tasks too
-- **Bulk operations** — archive or restore multiple tasks/boards at once (all or a specific list of ids)
+- **Permanent delete, with guardrails** — a task or board can only be permanently deleted once archived; a board can only be deleted once it has no tasks left, so nothing disappears without an explicit choice
+- **Bulk operations** — archive, restore, or permanently delete multiple tasks/boards at once (all, or a specific list of ids)
 - **Authentication** — token-based authentication with login, registration, logout, and password change
-- **User profile** — retrieve the current user's profile via `/auth/me/`
+- **User profile** — retrieve the current user's profile via `/auth/about/`
 - **Permissions** — only the author of a task or board can update, delete, archive, or restore it
 - **Rate limiting** — login and registration endpoints are throttled to prevent brute force attacks
 - **Filtering, search & ordering** — filter tasks by status/priority/board, search by title/description, order by multiple fields
 - **Pagination** — consistent page-based pagination across list endpoints
 - **API documentation** — auto-generated Swagger UI via `drf-spectacular`
 - **Containerized environment** — PostgreSQL via Docker Compose for development
+- **Frontend** — Vue 3 + Pinia + Bootstrap 5 single-page app covering the full workflow: auth, board/task CRUD, archive/restore, a trash view with multi-select and bulk actions, and permanent delete with confirmation
 
 ---
 
 ## Tech Stack
 
+### Backend
 - Python 3.14
 - Django 6.0
 - Django REST Framework
@@ -39,7 +45,16 @@ This repository contains the backend (`project/be`). A frontend (`project/fe`) m
 - Docker / Docker Compose
 - Render (deployment)
 - Neon (PostgreSQL serverless, production)
-- PostgreSQL via Docker Compose (development)
+
+### Frontend
+- Vue 3 (Composition API, `<script setup>`)
+- Vite
+- Pinia
+- Vue Router
+- TypeScript, with types generated from the OpenAPI schema via `openapi-typescript`
+- Bootstrap 5
+- Axios
+- Vercel (deployment)
 
 ---
 
@@ -48,8 +63,8 @@ This repository contains the backend (`project/be`). A frontend (`project/fe`) m
 ```
 hyperskill-to-do-list/
 ├── project/
-│   ├── be/       ← Django REST API (this document)
-│   └── fe/       ← Frontend (planned)
+│   ├── be/       ← Django REST API
+│   └── fe/       ← Vue 3 frontend
 ├── tasks/        ← HyperSkill course task files
 ├── .gitignore
 └── README.md
@@ -62,10 +77,11 @@ hyperskill-to-do-list/
 ### Prerequisites
 
 - Python 3.12+
+- Node.js 18+
 - Docker & Docker Compose
-- pip
+- pip / npm
 
-### Steps
+### Backend
 
 ```bash
 # Clone the repository
@@ -91,6 +107,26 @@ docker compose exec web python manage.py createsuperuser
 
 The API will be available at `http://localhost:8000/`, with Swagger UI served at the root path.
 
+### Frontend
+
+```bash
+cd hyperskill-to-do-list/project/fe
+
+# Install dependencies
+npm install
+
+# Point the frontend at your local API
+# (create .env.development with VITE_API_BASE_URL=http://127.0.0.1:8000)
+
+# Regenerate API types from the running backend's OpenAPI schema
+npm run generate:types
+
+# Start the dev server
+npm run dev
+```
+
+The frontend will be available at `http://localhost:5173/`.
+
 ---
 
 ## API Endpoints
@@ -98,45 +134,51 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 ### Authentication
 
 | Method | Endpoint                  | Description                        | Auth required |
-|--------|----------------------------|-----------------------------------|----------------|
+|--------|-----------------------------|--------------------------------------|----------------|
 | POST   | `/auth/register/`         | Register a new user                | ❌             |
 | POST   | `/auth/login/`            | Log in and obtain a token          | ❌             |
 | POST   | `/auth/logout/`           | Invalidate the current token       | ✅             |
-| GET    | `/auth/me/`               | Retrieve the current user profile  | ✅             |
+| GET    | `/auth/about/`            | Retrieve the current user profile  | ✅             |
 | POST   | `/auth/change-password/`  | Change the current user's password | ✅             |
 
 ### Boards
 
-| Method | Endpoint                     | Description                                  | Auth required     |
-|--------|-------------------------------|-----------------------------------------------|--------------------|
-| GET    | `/boards/`                   | List all boards                               | ✅                 |
-| POST   | `/boards/`                   | Create a new board                            | ✅                 |
-| GET    | `/boards/<id>/`               | Retrieve a board, including its active tasks  | ✅ Author only     |
-| PUT    | `/boards/<id>/`               | Fully update a board                          | ✅ Author only     |
-| PATCH  | `/boards/<id>/`               | Partially update a board                      | ✅ Author only     |
-| DELETE | `/boards/<id>/`               | Permanently delete a board                    | ✅ Author only     |
-| POST   | `/boards/archive-all/`        | Archive all boards, or a subset by ids        | ✅                 |
-| POST   | `/boards/restore-all/`        | Restore all boards, or a subset by ids        | ✅                 |
-| POST   | `/boards/<id>/archive/`       | Archive a board and cascade-archive its tasks | ✅ Author only     |
-| POST   | `/boards/<id>/restore/`       | Restore a board (optionally its tasks too)    | ✅ Author only     |
+Boards are addressed by **slug**, not by numeric id (e.g. `/boards/my-project/`). The slug is generated from the title on creation and regenerated whenever the title changes; a `GET` on a previous slug returns a `301` response with the current slug instead of a `404`, so old links and bookmarks keep working after a rename.
+
+| Method | Endpoint                       | Description                                        | Auth required     |
+|--------|-----------------------------------|--------------------------------------------------------|--------------------|
+| GET    | `/boards/`                     | List all boards                                       | ✅                 |
+| POST   | `/boards/`                     | Create a new board                                    | ✅                 |
+| GET    | `/boards/<slug>/`               | Retrieve a board, including its active tasks           | ✅ Author only     |
+| PUT    | `/boards/<slug>/`               | Fully update a board                                   | ✅ Author only     |
+| PATCH  | `/boards/<slug>/`               | Partially update a board                               | ✅ Author only     |
+| DELETE | `/boards/<slug>/`               | Permanently delete a board (must be archived and empty) | ✅ Author only     |
+| POST   | `/boards/archive-all/`          | Archive all boards, or a subset by ids                 | ✅                 |
+| POST   | `/boards/restore-all/`          | Restore all boards, or a subset by ids                 | ✅                 |
+| POST   | `/boards/delete-all/`           | Permanently delete all archived boards, or a subset by ids | ✅             |
+| POST   | `/boards/<slug>/archive/`       | Archive a board and cascade-archive its tasks           | ✅ Author only     |
+| POST   | `/boards/<slug>/restore/`       | Restore a board (optionally its tasks too)              | ✅ Author only     |
 
 `restore-all` and `restore` accept an optional `?restore_tasks=true` query parameter to also restore the tasks associated with the restored board(s).
 
+A board can only be permanently deleted once it is archived **and** has no tasks left attached to it — delete or move its tasks first (or use `delete-all` on the board's tasks). This is a deliberate guardrail: nothing about a board is ever destroyed as a side effect of deleting something else.
+
 ### Tasks
 
-| Method | Endpoint                    | Description                              | Auth required     |
-|--------|-------------------------------|--------------------------------------------|--------------------|
-| GET    | `/tasks/`                     | List all tasks (filter/search/order)       | ✅                 |
-| POST   | `/tasks/`                     | Create a new task                          | ✅                 |
-| GET    | `/tasks/<id>/`                | Retrieve a task                            | ✅ Author only     |
-| PUT    | `/tasks/<id>/`                | Fully update a task                        | ✅ Author only     |
-| PATCH  | `/tasks/<id>/`                | Partially update a task                    | ✅ Author only     |
-| DELETE | `/tasks/<id>/`                | Permanently delete a task                  | ✅ Author only     |
-| POST   | `/tasks/archive-all/`         | Archive all tasks, or a subset by ids      | ✅                 |
-| POST   | `/tasks/restore-all/`         | Restore all tasks, or a subset by ids      | ✅                 |
-| POST   | `/tasks/<id>/archive/`        | Archive a task                             | ✅ Author only     |
-| POST   | `/tasks/<id>/restore/`        | Restore a task                             | ✅ Author only     |
-| POST   | `/tasks/move/`                | Move a list of tasks to a board (or remove from board)     | ✅ |
+| Method | Endpoint                    | Description                                | Auth required     |
+|--------|--------------------------------|------------------------------------------------|--------------------|
+| GET    | `/tasks/`                     | List all tasks (filter/search/order)           | ✅                 |
+| POST   | `/tasks/`                     | Create a new task                              | ✅                 |
+| GET    | `/tasks/<id>/`                | Retrieve a task                                | ✅ Author only     |
+| PUT    | `/tasks/<id>/`                | Fully update a task                            | ✅ Author only     |
+| PATCH  | `/tasks/<id>/`                | Partially update a task                        | ✅ Author only     |
+| DELETE | `/tasks/<id>/`                | Permanently delete a task (must be archived)    | ✅ Author only     |
+| POST   | `/tasks/archive-all/`         | Archive all tasks, or a subset by ids          | ✅                 |
+| POST   | `/tasks/restore-all/`         | Restore all tasks, or a subset by ids          | ✅                 |
+| POST   | `/tasks/delete-all/`          | Permanently delete all archived tasks, or a subset by ids | ✅         |
+| POST   | `/tasks/<id>/archive/`        | Archive a task                                 | ✅ Author only     |
+| POST   | `/tasks/<id>/restore/`        | Restore a task                                 | ✅ Author only     |
+| POST   | `/tasks/move/`                | Move a list of tasks to a board (or remove from board) | ✅         |
 
 **Filtering / search / ordering** on `GET /tasks/`:
 - `?status=`, `?priority=` and `?board=` — filter by task status, priority or board
@@ -156,19 +198,19 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 
 ### Task
 
-| Field             | Type                          | Description                            |
-|--------------------|-------------------------------|------------------------------------------|
-| `id`               | AutoField                    | Auto-generated                          |
-| `title`            | CharField (max 50)            | Task title                              |
-| `description`      | TextField (max 1024)          | Task description                        |
-| `goal_set_date`    | DateField                    | Date the task was created                |
-| `set_to_complete`  | DateField                    | Deadline                                |
-| `status`           | IntegerField (enum)           | `IN_PROGRESS=0`, `TODO=1`, `DONE=2`     |
-| `priority`         | IntegerField (enum)           | `HIGH=0`, `MEDIUM=1`, `LOW=2`, `ZERO=3` |
-| `user`             | ForeignKey (User)              | Task author                             |
-| `board`            | ForeignKey (Board, nullable)    | Board the task belongs to                |
-| `is_archived`      | BooleanField                  | Soft-delete flag (inherited from `BaseModel`) |
-| `created_at` / `updated_at` | DateTimeField        | Timestamps (inherited from `BaseModel`)  |
+| Field             | Type                              | Description                            |
+|--------------------|------------------------------------|-------------------------------------------|
+| `id`               | AutoField                        | Auto-generated                          |
+| `title`            | CharField (max 50)                | Task title                              |
+| `description`      | TextField (max 1024, optional)    | Task description                        |
+| `goal_set_date`    | DateField                        | Date the task was created                |
+| `set_to_complete`  | DateField                        | Deadline                                |
+| `status`           | CharField (enum)                  | `IN_PROGRESS`, `TODO`, `DONE`           |
+| `priority`         | CharField (enum)                  | `HIGH`, `MEDIUM`, `LOW`, `ZERO`         |
+| `user`             | ForeignKey (User)                  | Task author                             |
+| `board`            | ForeignKey (Board, nullable)        | Board the task belongs to. `on_delete=CASCADE`: deleting a board deletes its tasks too (blocked in practice by the board-delete guardrail above) |
+| `is_archived`      | BooleanField                      | Soft-delete flag (inherited from `BaseModel`) |
+| `created_at` / `updated_at` | DateTimeField              | Timestamps (inherited from `BaseModel`)  |
 
 ### Board
 
@@ -176,6 +218,7 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 |--------------------|------------------------|---------------------------------|
 | `id`               | AutoField              | Auto-generated                |
 | `title`            | CharField (max 100)     | Board title                   |
+| `slug`             | SlugField (max 100)     | URL identifier, derived from `title`; regenerated on rename (inherited from `SluggedModel`) |
 | `description`      | TextField (max 2048)    | Board description              |
 | `color`            | CharField (#HEX)        | Display color (e.g. `#FF0000`) |
 | `user`             | ForeignKey (User)        | Board author                  |
@@ -186,6 +229,10 @@ The API will be available at `http://localhost:8000/`, with Swagger UI served at
 
 An abstract base model shared by both `Task` and `Board`, providing `is_archived`, `created_at`, `updated_at`, and the `archive()` / `restore()` methods used for soft delete.
 
+### SluggedModel (`core`)
+
+An abstract base model for anything that needs a URL-friendly, renamable identifier — currently `Board`. Generates a unique slug from `title` on save, and records previous slugs in a generic `SlugHistory` table (via Django's content types framework) so that a request for an old slug returns a `301` with the current one instead of a `404`.
+
 ---
 
 ## Permissions
@@ -193,7 +240,8 @@ An abstract base model shared by both `Task` and `Board`, providing `is_archived
 - **Unauthenticated users** → `401 Unauthorized` on all API endpoints except registration and login
 - **Authenticated users** → can view their own tasks/boards and create new ones
 - **Author only** → can update, delete, archive, or restore their own tasks/boards (`IsAuthorOrReadOnly`)
-- All list/detail querysets are scoped to `user=request.user` and `is_archived=False`, so archived items are automatically excluded from regular results
+- List querysets are scoped to `user=request.user` and, by default, `is_archived=False` (pass `?is_archived=true` to see archived items instead)
+- Board detail (`GET`/`PUT`/`PATCH`/`DELETE` on `/boards/<slug>/`) is scoped to `user=request.user` but **not** filtered by `is_archived` — an archived board can still be retrieved directly, which is what lets the frontend show its details from the trash view
 
 ---
 
@@ -217,16 +265,17 @@ Priority can be assigned to tasks with status `IN_PROGRESS` or `TODO`. Tasks wit
 
 ---
 
-## Soft Delete & Cascade Logic
+## Soft Delete, Cascade & Permanent Delete
 
-Rather than permanently deleting tasks and boards, the API supports archiving:
+Rather than permanently deleting tasks and boards outright, the API supports archiving first:
 
 - **Archiving a task** marks it as `is_archived=True`. It disappears from `GET /tasks/` but isn't deleted.
 - **Archiving a board** archives the board *and* cascades the archive to all of its active tasks.
 - **Restoring a board** restores the board itself. Tasks stay archived unless `?restore_tasks=true` is passed, in which case all of the board's archived tasks are restored too.
-- **Bulk endpoints** (`archive-all` / `restore-all`) accept an optional `ids` list in the request body. If `ids` is omitted or empty, the operation applies to all of the user's tasks/boards.
+- **Permanently deleting a task or board** is only allowed once it's archived. A board additionally requires that it have no tasks left attached to it, so a board can never disappear and silently take unreviewed tasks with it through the API's normal flow.
+- **Bulk endpoints** (`archive-all` / `restore-all` / `delete-all`) accept an optional `ids` list in the request body. If `ids` is omitted or empty, the operation applies to all of the user's eligible tasks/boards.
 
-The archive/restore logic lives in dedicated service modules (`task/services`, `board/services`) rather than in the views, keeping the views focused on request/response handling and permission checks.
+The archive/restore/delete logic lives in dedicated service modules (`task/services`, `board/services`) rather than in the views, keeping the views focused on request/response handling and permission checks.
 
 ---
 
@@ -241,9 +290,12 @@ project/be/
 │   │   ├── auth.py
 │   │   └── drf.py
 │   └── urls.py
-├── core/                      ← shared base model, permissions, validators
+├── core/                      ← shared base models, permissions, validators, slug utilities
 │   ├── models/
-│   │   └── base.py
+│   │   ├── base.py
+│   │   └── slugs.py
+│   ├── utils/
+│   │   └── slugs.py
 │   ├── constants/
 │   │   └── api/
 │   └── tests/
@@ -261,8 +313,8 @@ project/be/
 │   ├── services/
 │   ├── constants/
 │   ├── views/
-│   │   ├── crud.py
-│   │   └── soft_delete.py
+│   │   ├── crud.py            ← list, detail, delete-all
+│   │   └── soft_delete.py     ← archive, restore, archive-all, restore-all
 │   └── tests/
 ├── task/
 │   ├── enums/
@@ -272,10 +324,36 @@ project/be/
 │   ├── services/
 │   ├── constants/
 │   ├── views/
-│   │   ├── crud.py
-│   │   └── soft_delete.py
+│   │   ├── crud.py            ← list, detail, delete-all
+│   │   └── soft_delete.py     ← archive, restore, archive-all, restore-all
 │   └── tests/
 └── manage.py
+```
+
+## Frontend Structure
+
+```
+project/fe/
+├── src/
+│   ├── schema/                ← auto-generated OpenAPI types (openapi-typescript)
+│   ├── types/                 ← domain types built on top of the generated schema
+│   ├── constants/
+│   │   └── endpoints.ts
+│   ├── services/              ← one file per domain, thin axios wrappers
+│   ├── stores/                ← Pinia stores (auth, board, task)
+│   ├── router/
+│   ├── composables/
+│   ├── components/
+│   │   ├── base/               ← generic, reusable, no domain knowledge (e.g. ConfirmModal)
+│   │   └── domain/
+│   │       ├── auth/
+│   │       ├── board/
+│   │       └── task/
+│   ├── views/
+│   ├── App.vue
+│   ├── main.ts
+│   └── custom.css             ← theme tokens and additive utility classes layered on top of Bootstrap
+└── package.json
 ```
 
 ---
@@ -303,7 +381,7 @@ docker compose exec web coverage html
 
 ## Development Stages
 
-This project was originally developed in 5 stages as part of a HyperSkill course, and has since evolved beyond that scope with additional features built independently:
+This project was originally developed in 5 stages as part of a HyperSkill course, and has since evolved well beyond that scope with additional features built independently:
 
 - **Stage 1** — Basic Django SSR page with a Todo model and list/detail views
 - **Stage 2** — REST API with `GET /api/tasks/` and `GET /api/tasks/<id>/`
@@ -326,3 +404,7 @@ This project was originally developed in 5 stages as part of a HyperSkill course
 - Added `priority` field to tasks (`HIGH`, `MEDIUM`, `LOW`, `ZERO`) with automatic ordering by priority and status
 - Added field-level validation: hex color format for boards, date range consistency, board ownership check
 - Added bulk move endpoint to assign or reassign a list of tasks to a board in a single operation
+- Introduced slug-based URLs for boards (`core.SluggedModel`), with automatic redirect from previous slugs after a rename
+- Changed `Task.board` to `on_delete=CASCADE`, paired with a guardrail that blocks deleting a board while it still has tasks attached
+- Added permanent delete endpoints (single and bulk) for already-archived tasks and boards
+- Built the Vue 3 frontend: authentication flow, board and task CRUD with modals, a Trash view with per-item and bulk archive/restore/delete (including multi-select and "select all"), and a Bootstrap-based UI theme
