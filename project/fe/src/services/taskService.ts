@@ -42,6 +42,10 @@ export const taskService = {
         const response = await api.post<SimpleMessageResponse>(TASK_ENDPOINTS.restoreAll, payload)
         return response.data
     },
+    async deleteAll(payload: BulkIds = {}): Promise<SimpleMessageResponse> {
+        const response = await api.post<SimpleMessageResponse>(TASK_ENDPOINTS.deleteAll, payload)
+        return response.data
+    },
     async move(payload: TaskMove): Promise<SimpleMessageResponse> {
         const response = await api.post<SimpleMessageResponse>(TASK_ENDPOINTS.move, payload)
         return response.data

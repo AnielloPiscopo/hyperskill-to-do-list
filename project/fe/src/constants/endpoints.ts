@@ -9,6 +9,7 @@ export const TASK_ENDPOINTS = {
     restore: (id: number) => TASK_BASE_URL + id + "/restore/",
     archiveAll: TASK_BASE_URL + "archive-all/",
     restoreAll: TASK_BASE_URL + "restore-all/",
+    deleteAll: TASK_BASE_URL + "delete-all/",
     move: TASK_BASE_URL + 'move/'
 }
 
@@ -19,6 +20,7 @@ export const BOARD_ENDPOINTS = {
     restore: (slug: string) => BOARD_BASE_URL + slug + "/restore/",
     archiveAll: BOARD_BASE_URL + "archive-all/",
     restoreAll: BOARD_BASE_URL + "restore-all/",
+    deleteAll: BOARD_BASE_URL + "delete-all/",
 }
 
 export const AUTH_ENDPOINTS = {

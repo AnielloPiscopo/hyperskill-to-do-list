@@ -128,38 +128,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/boards/{slug}/": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Retrieve a board
-         * @description Returns the details of a specific board by its ID, including its tasks.
-         */
-        get: operations["boards_retrieve"];
-        /**
-         * Update a board
-         * @description Fully updates a board. Only the author can update it.
-         */
-        put: operations["boards_update"];
-        post?: never;
-        /**
-         * Delete a board
-         * @description Deletes a board. Only the author can delete it.
-         */
-        delete: operations["boards_destroy"];
-        options?: never;
-        head?: never;
-        /**
-         * Partially update a board
-         * @description Partially updates a board. Only the author can update it.
-         */
-        patch: operations["boards_partial_update"];
-        trace?: never;
-    };
     "/boards/archive-all/": {
         parameters: {
             query?: never;
@@ -200,6 +168,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/boards/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Retrieve a board
+         * @description Returns the details of a specific board by its ID, including its tasks.
+         */
+        get: operations["boards_retrieve"];
+        /**
+         * Update a board
+         * @description Fully updates a board. Only the author can update it.
+         */
+        put: operations["boards_update"];
+        post?: never;
+        /**
+         * Delete a board
+         * @description Deletes a board. Only the author can delete it.
+         */
+        delete: operations["boards_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * Partially update a board
+         * @description Partially updates a board. Only the author can update it.
+         */
+        patch: operations["boards_partial_update"];
+        trace?: never;
+    };
     "/boards/{slug}/archive/": {
         parameters: {
             query?: never;
@@ -234,6 +234,26 @@ export interface paths {
          * @description Restores an archived board. Pass `?restore_tasks=true` to restore its tasks too.
          */
         post: operations["boards_restore_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/boards/delete-all/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete multiple boards
+         * @description Permanently deletes archived boards, or a subset by ids. If ids is empty or not provided, deletes all archived boards.
+         */
+        post: operations["boards_delete_all_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -396,6 +416,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/tasks/delete-all/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete multiple tasks
+         * @description Permanently deletes archived tasks, or a subset by ids. If ids is empty or not provided, deletes all archived tasks.
+         */
+        post: operations["tasks_delete_all_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -538,7 +578,7 @@ export interface components {
          */
         PatchedTask: {
             readonly id?: number;
-            board?: number | null;
+            readonly board_slug?: string;
             /** Format: date-time */
             readonly created_at?: string;
             /** Format: date-time */
@@ -574,6 +614,7 @@ export interface components {
              *     * `ZERO` - Zero
              */
             priority?: components["schemas"]["PriorityEnum"];
+            board?: number | null;
         };
         /**
          * @description * `HIGH` - High
@@ -622,7 +663,7 @@ export interface components {
          */
         Task: {
             readonly id: number;
-            board?: number | null;
+            readonly board_slug: string;
             /** Format: date-time */
             readonly created_at: string;
             /** Format: date-time */
@@ -658,6 +699,7 @@ export interface components {
              *     * `ZERO` - Zero
              */
             priority?: components["schemas"]["PriorityEnum"];
+            board?: number | null;
         };
         /**
          * @description Serializer for moving a batch of tasks to a different board (or no board).
@@ -929,6 +971,89 @@ export interface operations {
             };
         };
     };
+    boards_archive_all_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BulkIds"];
+                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
+                "multipart/form-data": components["schemas"]["BulkIds"];
+            };
+        };
+        responses: {
+            /** @description Boards archived successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleMessageResponse"];
+                };
+            };
+            /** @description Bad request — invalid data. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authorized or not authenticated. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    boards_restore_all_create: {
+        parameters: {
+            query?: {
+                /** @description Pass true to restore all tasks associated with the boards. */
+                restore_tasks?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BulkIds"];
+                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
+                "multipart/form-data": components["schemas"]["BulkIds"];
+            };
+        };
+        responses: {
+            /** @description Boards restored successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleMessageResponse"];
+                };
+            };
+            /** @description Bad request — invalid data. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authorized or not authenticated. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     boards_retrieve: {
         parameters: {
             query?: never;
@@ -1101,89 +1226,6 @@ export interface operations {
             };
         };
     };
-    boards_archive_all_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["BulkIds"];
-                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
-                "multipart/form-data": components["schemas"]["BulkIds"];
-            };
-        };
-        responses: {
-            /** @description Boards archived successfully. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SimpleMessageResponse"];
-                };
-            };
-            /** @description Bad request — invalid data. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not authorized or not authenticated. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
-    boards_restore_all_create: {
-        parameters: {
-            query?: {
-                /** @description Pass true to restore all tasks associated with the boards. */
-                restore_tasks?: boolean;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: {
-            content: {
-                "application/json": components["schemas"]["BulkIds"];
-                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
-                "multipart/form-data": components["schemas"]["BulkIds"];
-            };
-        };
-        responses: {
-            /** @description Boards restored successfully. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["SimpleMessageResponse"];
-                };
-            };
-            /** @description Bad request — invalid data. */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-            /** @description Not authorized or not authenticated. */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content?: never;
-            };
-        };
-    };
     boards_archive_create: {
         parameters: {
             query?: never;
@@ -1252,6 +1294,46 @@ export interface operations {
             };
             /** @description Board not found. */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    boards_delete_all_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BulkIds"];
+                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
+                "multipart/form-data": components["schemas"]["BulkIds"];
+            };
+        };
+        responses: {
+            /** @description Boards deleted successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleMessageResponse"];
+                };
+            };
+            /** @description Bad request — invalid data. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authorized or not authenticated. */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1691,6 +1773,46 @@ export interface operations {
         };
         responses: {
             /** @description Tasks moved successfully. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimpleMessageResponse"];
+                };
+            };
+            /** @description Bad request — invalid data. */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not authorized or not authenticated. */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    tasks_delete_all_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["BulkIds"];
+                "application/x-www-form-urlencoded": components["schemas"]["BulkIds"];
+                "multipart/form-data": components["schemas"]["BulkIds"];
+            };
+        };
+        responses: {
+            /** @description Tasks deleted successfully. */
             200: {
                 headers: {
                     [name: string]: unknown;
