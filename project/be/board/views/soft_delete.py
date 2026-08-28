@@ -7,11 +7,11 @@ from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from drf_spectacular.utils import OpenApiTypes
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.serializers import BulkIdsSerializer
-from board.constants.api import payloads, responses as board_responses
+from board.schema.api import payloads, responses as board_responses
 from board.models import Board
 from board.services import archive_board, restore_board, archive_boards, restore_boards
 
@@ -33,14 +33,14 @@ class BoardArchiveView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request: Request, pk: int) -> Response:
+    def post(self, request: Request, slug: str) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardArchiveView', 'POST',
-                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
-        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=False)
+                                      LogHelper.Direction.REQUEST)} - received, slug={slug}")
+        board: Board = get_object_or_404(Board, slug=slug, user=request.user, is_archived=False)
         self.check_object_permissions(request, board)
         archive_board(board)
-        response = Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Board archived.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardArchiveView', 'POST',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -70,16 +70,16 @@ class BoardRestoreView(APIView):
             404: board_responses.RESPONSE_404,
         }
     )
-    def post(self, request: Request, pk: int):
+    def post(self, request: Request, slug: str) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardRestoreView', 'POST',
-                                      LogHelper.Direction.REQUEST)} - received, pk={pk}")
-        board: Board = get_object_or_404(Board, pk=pk, user=request.user, is_archived=True)
+                                      LogHelper.Direction.REQUEST)} - received, slug={slug}")
+        board: Board = get_object_or_404(Board, slug=slug, user=request.user, is_archived=True)
         self.check_object_permissions(request, board)
         # Query params are always strings, so compare against the literal 'true'
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_board(board, restore_tasks=restore_tasks)
-        response = Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Board restored.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardRestoreView', 'POST',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -105,7 +105,7 @@ class BoardArchiveAllView(APIView):
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardArchiveAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = BulkIdsSerializer(data=request.data)
+        serializer: BulkIdsSerializer = BulkIdsSerializer(data=request.data)
         if not serializer.is_valid():
             response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
@@ -115,7 +115,7 @@ class BoardArchiveAllView(APIView):
 
         ids: list[int] | None = serializer.validated_data.get('ids')
         archive_boards(user=request.user, ids=ids if ids else None)
-        response = Response({'detail': 'Boards archived.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Boards archived.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardArchiveAllView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
@@ -150,7 +150,7 @@ class BoardRestoreAllView(APIView):
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardRestoreAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = BulkIdsSerializer(data=request.data)
+        serializer: BulkIdsSerializer = BulkIdsSerializer(data=request.data)
         if not serializer.is_valid():
             response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
@@ -162,7 +162,7 @@ class BoardRestoreAllView(APIView):
         # Query params are always strings, so compare against the literal 'true'
         restore_tasks: bool = request.query_params.get('restore_tasks') == 'true'
         restore_boards(user=request.user, ids=ids if ids else None, restore_tasks=restore_tasks)
-        response = Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Boards restored.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('board', 'BoardRestoreAllView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")

@@ -6,11 +6,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
-from core.constants.api import responses as core_responses
+from core.schema.api import responses as core_responses
 from core.utils.logs import LogHelper
 from core.permissions import IsAuthorOrReadOnly
 from core.serializers import BulkIdsSerializer
-from task.constants.api import payloads, responses as task_responses
+from task.schema.api import payloads, responses as task_responses
 from task.models import Task
 from task.services import archive_task, restore_task, archive_tasks, restore_tasks
 
@@ -39,7 +39,7 @@ class TaskArchiveView(APIView):
         task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=False)
         self.check_object_permissions(request, task)
         archive_task(task)
-        response = Response({'detail': 'Task archived.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Task archived.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskArchiveView', 'POST',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -67,7 +67,7 @@ class TaskRestoreView(APIView):
         task: Task = get_object_or_404(Task, pk=pk, user=request.user, is_archived=True)
         self.check_object_permissions(request, task)
         restore_task(task)
-        response = Response({'detail': 'Task restored.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Task restored.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskRestoreView', 'POST',
                                       LogHelper.Direction.RESPONSE)} - status={response.status_code}")
@@ -93,7 +93,7 @@ class TaskArchiveAllView(APIView):
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = BulkIdsSerializer(data=request.data)
+        serializer: BulkIdsSerializer = BulkIdsSerializer(data=request.data)
         if not serializer.is_valid():
             response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
@@ -103,7 +103,7 @@ class TaskArchiveAllView(APIView):
 
         ids: list[int] | None = serializer.validated_data.get('ids')
         archive_tasks(user=request.user, ids=ids if ids else None)
-        response = Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Tasks archived.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskArchiveAllView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")
@@ -130,7 +130,7 @@ class TaskRestoreAllView(APIView):
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = BulkIdsSerializer(data=request.data)
+        serializer: BulkIdsSerializer = BulkIdsSerializer(data=request.data)
         if not serializer.is_valid():
             response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
@@ -140,7 +140,7 @@ class TaskRestoreAllView(APIView):
 
         ids: list[int] | None = serializer.validated_data.get('ids')
         restore_tasks(user=request.user, ids=ids if ids else None)
-        response = Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Tasks restored.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('task', 'TaskRestoreAllView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")

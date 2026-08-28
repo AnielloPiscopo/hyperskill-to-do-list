@@ -43,11 +43,11 @@ class RegisterViewTest(APITestCase):
         response = self.client.post(self.url, self.valid_data)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
-    def test_register_without_email_returns_201(self):
+    def test_register_without_email_returns_400(self):
         data = self.valid_data.copy()
         data.pop('email')
         response = self.client.post(self.url, data)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_register_response_contains_username_and_email(self):
         response = self.client.post(self.url, self.valid_data)

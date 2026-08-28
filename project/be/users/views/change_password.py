@@ -1,11 +1,16 @@
 import logging
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from django.contrib.auth.models import User
+from drf_spectacular.utils import extend_schema
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import status
 from core.utils.logs import LogHelper
+from core.schema.api import responses as core_responses
+from users.constants.api import validation_msg as user_msg
+from users.schema.api import responses as user_responses
 from users.serializers import ChangePasswordSerializer
 
 __all__ = ['ChangePasswordView']
@@ -14,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class ChangePasswordView(APIView):
+    request: Request
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -22,27 +28,27 @@ class ChangePasswordView(APIView):
         tags=['auth'],
         request=ChangePasswordSerializer,
         responses={
-            200: OpenApiResponse(description='Password changed successfully.'),
-            400: OpenApiResponse(description='Bad request — invalid data or wrong password.'),
-            401: OpenApiResponse(description='Authentication credentials were not provided.'),
+            200: user_responses.RESPONSE_200_CHANGE_PASSWORD,
+            400: user_responses.RESPONSE_400_CHANGE_PASSWORD,
+            401: core_responses.RESPONSE_401,
         }
     )
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         logger.info(
             f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.REQUEST)} - received")
 
-        serializer = ChangePasswordSerializer(data=request.data)
+        serializer: ChangePasswordSerializer = ChangePasswordSerializer(data=request.data)
         if not serializer.is_valid():
-            response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            response: Response = Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             logger.info(
                 f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.RESPONSE)}"
                 f" - status={response.status_code}, reason=invalid_serializer")
             return response
 
-        user = request.user
+        user: User = request.user
         if not user.check_password(serializer.validated_data['old_password']):
-            response = Response(
-                {'old_password': 'Wrong password.'},
+            response: Response = Response(
+                {'old_password': [user_msg.WRONG_PASSWORD]},
                 status=status.HTTP_400_BAD_REQUEST
             )
             logger.info(
@@ -56,7 +62,7 @@ class ChangePasswordView(APIView):
         # with the new password; avoids stale tokens remaining valid after a
         # password change.
         Token.objects.filter(user=user).delete()
-        response = Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+        response: Response = Response({'detail': 'Password changed successfully.'}, status=status.HTTP_200_OK)
         logger.info(
             f"{LogHelper.build_prefix('users', 'ChangePasswordView', 'POST', LogHelper.Direction.RESPONSE)}"
             f" - status={response.status_code}")

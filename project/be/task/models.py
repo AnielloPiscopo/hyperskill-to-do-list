@@ -21,6 +21,8 @@ class Task(BaseModel):
     )
     description = models.TextField(
         max_length=1024,
+        blank=True,
+        default='',
         help_text='Detailed description of the task (max 1024 characters)'
     )
     goal_set_date = models.DateField(
@@ -48,7 +50,7 @@ class Task(BaseModel):
     )
     board = models.ForeignKey(
         "board.Board",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="tasks"

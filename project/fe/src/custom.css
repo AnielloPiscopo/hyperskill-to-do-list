@@ -1,0 +1,81 @@
+/* Warm desk-organizer theme */
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Work+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg-cream: #fdf6e9;
+  --ink: #2b2320;
+  --coral: #ff6b4a;
+  --coral-dark: #e5502f;
+  --teal: #1fa6a0;
+  --teal-dark: #157e7a;
+  --sun: #ffc857;
+  --paper-border: #e8dcc3;
+
+  --bs-body-bg: var(--bg-cream);
+  --bs-body-color: var(--ink);
+  --bs-body-font-family: 'Work Sans', system-ui, sans-serif;
+  --bs-border-radius: 0.9rem;
+  --bs-border-radius-sm: 0.6rem;
+  --bs-border-radius-lg: 1.2rem;
+
+  --bs-primary: var(--coral);
+  --bs-primary-rgb: 255, 107, 74;
+  --bs-link-color: var(--teal-dark);
+  --bs-link-hover-color: var(--coral-dark);
+  --bs-focus-ring-color: rgba(31, 166, 160, 0.35);
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Baloo 2', system-ui, sans-serif;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.my-text-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+}
+
+.my-btn-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(255, 107, 74, 0.35);
+}
+
+.my-btn-danger-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.25);
+}
+
+.my-btn-outline-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(31, 166, 160, 0.25);
+}
+
+.my-empty-state {
+  border: 2px dashed var(--paper-border);
+  border-radius: var(--bs-border-radius-lg);
+  color: #8a7f6d;
+}
+
+.my-task-row {
+  border-left: 4px solid var(--priority-color, var(--paper-border));
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
+}
+
+.my-task-row:hover {
+  background-color: rgba(31, 166, 160, 0.06);
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .my-btn-lift,
+  .my-btn-outline-lift,
+  .my-btn-danger-lift,
+  .my-task-row {
+    transition: none !important;
+  }
+}

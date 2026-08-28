@@ -1,5 +1,6 @@
 from typing import Any
 from datetime import date
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.request import Request
 from core.constants.api import validation_msg as core_msg
@@ -21,15 +22,16 @@ class TaskSerializer(BaseModelSerializer):
     requesting user, preventing cross-user board assignment.
     """
 
-    board = serializers.PrimaryKeyRelatedField(
-        queryset=Board.objects.all(),
-        required=False,
-        allow_null=True
-    )
+    board_slug = serializers.SerializerMethodField()
+
+    @extend_schema_field(str)
+    def get_board_slug(self, obj: Task) -> str | None:
+        return obj.board.slug if obj.board else None
 
     class Meta(BaseModelSerializer.Meta):
         model = Task
         exclude = ['user', 'is_archived']
+        extra_kwargs = {'board': {'write_only': True}}
 
     def validate_title(self, title: str) -> str:  # noqa: field-level validator — DRF calls it via naming convention
         """Reject titles that are blank or contain only whitespace."""

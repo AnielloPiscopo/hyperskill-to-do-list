@@ -57,11 +57,43 @@ class RegisterSerializerTest(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertIn('password', serializer.errors)
 
-    def test_email_is_optional(self):
+    def test_email_is_required(self):
         data = self.valid_data.copy()
         data.pop('email')
         serializer = RegisterSerializer(data=data)
+        self.assertFalse(serializer.is_valid())
+        self.assertIn('email', serializer.errors)
+
+    def test_email_is_normalized_to_lowercase(self):
+        data = self.valid_data.copy()
+        data['email'] = 'NewUser@Example.COM'
+        serializer = RegisterSerializer(data=data)
         self.assertTrue(serializer.is_valid(), serializer.errors)
+        user = serializer.save()
+        self.assertEqual(user.email, 'newuser@example.com')
+
+    def test_duplicate_email_is_invalid(self):
+        serializer = RegisterSerializer(data=self.valid_data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        data = self.valid_data.copy()
+        data['username'] = 'anotheruser'
+        serializer2 = RegisterSerializer(data=data)
+        self.assertFalse(serializer2.is_valid())
+        self.assertIn('email', serializer2.errors)
+
+    def test_duplicate_email_case_insensitive_is_invalid(self):
+        serializer = RegisterSerializer(data=self.valid_data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
+
+        data = self.valid_data.copy()
+        data['username'] = 'anotheruser'
+        data['email'] = self.valid_data['email'].upper()
+        serializer2 = RegisterSerializer(data=data)
+        self.assertFalse(serializer2.is_valid())
+        self.assertIn('email', serializer2.errors)
 
     def test_password_and_confirm_password_are_write_only(self):
         serializer = RegisterSerializer(data=self.valid_data)

@@ -17,8 +17,8 @@ class BoardArchiveViewTest(APITestCase):
         self.board = Board.objects.create(title='Board 1', user=self.user)
         self.task = _make_task(self.user, board=self.board)
 
-    def _url(self, pk=None):
-        return f'/boards/{pk or self.board.pk}/archive/'
+    def _url(self, slug=None):
+        return f'/boards/{slug or self.board.slug}/archive/'
 
     def test_archive_unauthenticated_returns_401(self):
         response = self.client.post(self._url())
@@ -50,7 +50,7 @@ class BoardArchiveViewTest(APITestCase):
 
     def test_archive_nonexistent_board_returns_404(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self._url(pk=9999))
+        response = self.client.post(self._url(slug='nonexistent-slug'))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_archive_other_user_board_returns_404(self):
@@ -73,8 +73,8 @@ class BoardRestoreViewTest(APITestCase):
         self.board = Board.objects.create(title='Board 1', user=self.user, is_archived=True)
         self.task = _make_task(self.user, board=self.board, is_archived=True)
 
-    def _url(self, pk=None):
-        return f'/boards/{pk or self.board.pk}/restore/'
+    def _url(self, slug=None):
+        return f'/boards/{slug or self.board.slug}/restore/'
 
     def test_restore_unauthenticated_returns_401(self):
         response = self.client.post(self._url())
@@ -100,7 +100,7 @@ class BoardRestoreViewTest(APITestCase):
 
     def test_restore_nonexistent_board_returns_404(self):
         self.client.force_authenticate(user=self.user)
-        response = self.client.post(self._url(pk=9999))
+        response = self.client.post(self._url(slug='nonexistent-slug'))
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_restore_other_user_board_returns_404(self):

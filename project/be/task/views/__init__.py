@@ -1,6 +1,6 @@
 from .crud import TaskListView, TaskDetailView
 from .soft_delete import TaskArchiveView, TaskRestoreView, TaskArchiveAllView, TaskRestoreAllView
-from .bulk import TaskMoveView
+from .bulk import TaskMoveView, TaskDestroyAllView
 
 __all__ = [
     'TaskListView',
@@ -10,4 +10,5 @@ __all__ = [
     'TaskArchiveAllView',
     'TaskRestoreAllView',
     'TaskMoveView',
+    'TaskDestroyAllView'
 ]
