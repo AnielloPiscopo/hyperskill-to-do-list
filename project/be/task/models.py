@@ -50,7 +50,7 @@ class Task(BaseModel):
     )
     board = models.ForeignKey(
         "board.Board",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name="tasks"
