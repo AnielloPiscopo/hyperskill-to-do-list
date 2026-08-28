@@ -8,7 +8,7 @@ export type PaginatedTaskList = SchemaComponents['PaginatedTaskList']
 export type TaskStatus = NonNullable<Task['status']>
 export type TaskPriority = NonNullable<Task['priority']>
 
-export type TaskPayload = ApiPayload<Task>
+export type TaskPayload = ApiPayload<Task, 'board_slug'>
 
 export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
     TODO: 'To Do',

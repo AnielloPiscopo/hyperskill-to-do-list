@@ -16,8 +16,8 @@ export interface BaseApiInterface extends ReadOnlyFields {
 /**
  * @package
  */
-export type ApiPayload<T extends BaseApiInterface, ExtraReadOnlyFiedls extends keyof T> =
-    Omit<T, keyof ReadOnlyFields | ExtraReadOnlyFiedls>
+export type ApiPayload<T extends BaseApiInterface, ExtraReadOnlyFields extends keyof T = never> =
+    Omit<T, keyof ReadOnlyFields | ExtraReadOnlyFields>
 
 /**
  * @package
