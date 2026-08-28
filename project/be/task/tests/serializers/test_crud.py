@@ -72,7 +72,7 @@ class TaskSerializerTest(TestCase):
         self.assertSetEqual(
             set(serializer.data.keys()),
             {'id', 'title', 'description', 'goal_set_date', 'set_to_complete',
-             'status', 'priority', 'board', 'updated_at', 'created_at'}
+             'status', 'priority', 'board_slug', 'updated_at', 'created_at'}
         )
 
     def test_serializes_title(self):

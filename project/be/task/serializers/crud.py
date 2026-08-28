@@ -31,6 +31,7 @@ class TaskSerializer(BaseModelSerializer):
     class Meta(BaseModelSerializer.Meta):
         model = Task
         exclude = ['user', 'is_archived']
+        extra_kwargs = {'board': {'write_only': True}}
 
     def validate_title(self, title: str) -> str:  # noqa: field-level validator — DRF calls it via naming convention
         """Reject titles that are blank or contain only whitespace."""
